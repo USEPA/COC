@@ -1,0 +1,565 @@
+#: import random random
+
+<MainScreenWidget>:
+    id: main
+    orientation: 'vertical'
+    spacing: 10
+    Label:
+        id: title
+        size_hint_y: None
+        height: 60
+        text_size: (self.parent.width, None)
+        text: f"[size=50][u][color=#009999]COC PDF Tool[/color][/size][/u]"
+        font_size: 18
+        halign: 'center'
+        valign: 'middle'
+        padding: (10, 10)
+        markup: True
+    ScreenWidget:
+        size_hint_y: None
+        height: 60
+        Label:
+            id: screen_label
+            size_hint_y: None
+            text_size: (self.parent.width, None)
+            size: self.texture_size
+            font_size: 18
+            halign: 'center'
+            valign: 'top'
+            padding: (10, 10)
+            markup: True
+    ScreenWidget:  # this contains the rows and columns
+        id: main_scroll
+        do_scroll_y: True
+        bar_width: 10
+        scroll_type: ['bars']
+        size_hint_y: None
+        height: self.parent.height-220
+        StackLayout:
+            id: middlesection
+            orientation: 'tb-lr'
+            size_hint_y: None
+            height: 0
+            spacing: 10
+    FloatLayout:
+        id: buttons
+        #orientation: 'horizontal'
+        size_hint_y: None
+        height: 70
+        padding: (10, 10)
+        spacing: 10
+        Button:
+            id: startpdf
+            text: "Turn into COC PDF"
+            size_hint: (None, None)
+            size: 150, 50
+            pos: -300, 10
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.choose_type()
+        Button:
+            id: exit
+            text: "Exit"
+            size_hint: (None, None)
+            size: 100, 50
+            pos: self.parent.width-110, 10
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.exit()
+        Button:
+            id: scan
+            text: "QR Scan"
+            size_hint: (None, None)
+            size: 180, 50
+            pos: 170, 10
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.scan()
+        Button:
+            id: auto
+            text: "Auto Populate"
+            size_hint: (None, None)
+            size: 180, 50
+            pos: 370, 10
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.auto_pop()
+        Button:
+            id: select
+            text: "Settings"
+            size_hint: (None, None)
+            size: 150, 50
+            pos: 595, 10
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.settings()
+
+<RowWidget>:  # the row widget which is instantiated and more of which are added and removed
+    orientation: 'lr-tb'
+    size_hint: None, None
+    size: 4175, 50
+    padding: 0, 20
+    spacing: 10
+    Label:
+        id: rownumber
+        text: "1"
+        size_hint: None, None
+        size: 40, 50
+    BoxLayout:
+        id: sampleidsection
+        orientation: 'vertical'
+        size_hint: None, None
+        size: 200, 50
+        Label:
+            id: sampleheader
+            text: "Sample ID"
+            size_hint: None, None
+            size: 200, 20
+        TextInput:
+            id: samplefield
+            text: ""
+            size_hint: None, None
+            size: 200, 30
+            use_bubble: True
+            use_handles: True
+            write_tab: False
+    BoxLayout:
+        id: buttonsection
+        orientation: 'vertical'
+        size_hint: None, None
+        size: 100, 50
+        padding: 0, 20, 0, 10
+        Button:
+            text: "Remove Sample"
+            size_hint: (None, None)
+            size: 100, 30
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+
+<ScanWidget>
+    orientation: 'vertical'
+    spacing: 5
+    BoxLayout:
+        orientation: 'vertical'
+        id: tophalf
+        spacing: 10
+    BoxLayout:
+        id: scanbuttons
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: 50
+        spacing: 10
+        Button:
+            text: 'Submit'
+            size_hint_y: None
+            height: 40
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.start_scan()
+        Button:
+            text: 'Cancel'
+            size_hint_y: None
+            height: 40
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.rem_drop()
+
+<PopulateWidget>
+    orientation: 'vertical'
+    spacing: 5
+    BoxLayout:
+        orientation: 'vertical'
+        id: tophalf
+        spacing: 10
+    BoxLayout:
+        id: popdetails
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: 40
+        spacing: 10
+        TextInput:
+            id: popcount
+            size_hint: None, None
+            size: 100, 40
+            hint_text: "# Samples"
+            use_bubble: True
+            use_handles: True
+            input_filter: 'int'
+            write_tab: False
+    BoxLayout:
+        id: popbuttons
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: 50
+        spacing: 10
+        Button:
+            text: 'Submit'
+            size_hint_y: None
+            height: 40
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.start_pop()
+        Button:
+            text: 'Cancel'
+            size_hint_y: None
+            height: 40
+            font_size: 13
+            color: (0, 0, 0, 1)
+            background_color: (255, 255, 255, 1)
+            on_release: root.rem_drop()
+
+<ContaminantWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        Button:
+            text: "Bio Samples"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.set_sample_type(0)
+            on_release: root.contam_widget_popup.dismiss()
+        Button:
+            text: "Chem Samples"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.set_sample_type(1)
+            on_release: root.contam_widget_popup.dismiss()
+
+<CameraWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        Button:
+            text: "Integrated Webcam"
+            size_hint: None, None
+            size: 235, 100
+            on_release: root.set_camera("Integrated")
+            on_release: root.camera_popup.dismiss()
+        Button:
+            text: "Separate Webcam"
+            size_hint: None, None
+            size: 235, 100
+            on_release: root.set_camera("Separate")
+            on_release: root.camera_popup.dismiss()
+        Button:
+            text: "PiCamera"
+            size_hint: None, None
+            size: 235, 100
+            disabled: True
+            on_release: root.set_camera("PiCamera")
+            on_release: root.camera_popup.dismiss()
+
+<ExitWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'horizontal'
+        Button:
+            id: exit_widget
+            text: "Yes"
+            size_hint: None, None
+            size: 195, 70
+            on_release: root.confirm_exit()
+            on_release: root.exit_widget_popup.dismiss()
+        Button:
+            text: "No"
+            size_hint: None, None
+            size: 195, 70
+            on_release: root.exit_widget_popup.dismiss()
+
+<StorageWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: (5, 5)
+        spacing: 10
+        Label:
+            text: "Provide the location of the sampling site"
+            size_hint_x: None
+            width: self.parent.width
+            halign: 'right'
+        TextInput:
+            id: location
+            size_hint_y: None
+            height: 40
+            hint_text: "Sample Location"
+            use_bubble: True
+            use_handles: True
+            write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            Label:
+                text: "Contact Person Name"
+            Label:
+                text: "Contact #"
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            TextInput:
+                id: contact_name
+                height: 40
+                hint_text: "Contact Name"
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+            TextInput:
+                id: contact_num
+                height: 40
+                hint_text: "xxx-xxx-xxxx"
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        Label:
+            text: root.text
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            Button:
+                text: "Select CSV file"
+                on_release: root.get_csv_file()
+            Button:
+                text: "Select ArcGIS Layer"
+                on_release: root.get_online_layer()
+
+<OnlineWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: (5, 5)
+        spacing: 10
+        Label:
+            text: "Which server are you using?"
+            size_hint_x: None
+            width: self.parent.width
+            halign: 'right'
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            ToggleButton:
+                id: epa_server
+                size_hint_y: None
+                height: 30
+                text: "EPA"
+                group: 'servers'
+                state: 'down'
+            ToggleButton:
+                id: oneepa_server
+                size_hint_y: None
+                height: 30
+                text: "OneEPA"
+                group: 'servers'
+        Label:
+            text: "Who is the owner of the layer"
+            size_hint_x: None
+            width: self.parent.width
+            halign: 'right'
+        TextInput:
+            id: owner
+            size_hint_y: None
+            height: 40
+            hint_text: "xname_EPA"
+            use_bubble: True
+            use_handles: True
+            write_tab: False
+        Label:
+            text: "What is the name of the Layer"
+            size_hint_x: None
+            width: self.parent.width
+            halign: 'right'
+        TextInput:
+            id: layer
+            size_hint_y: None
+            height: 40
+            hint_text: "Project Round 1"
+            use_bubble: True
+            use_handles: True
+            write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            Button:
+                text: "Cancel"
+                on_release: root.online_popup.dismiss()
+            Button:
+                text: "Submit"
+                on_release: root.access_layer()
+
+<AppendWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        padding: (5, 5)
+        spacing: 10
+        Label:
+            text: "Use the below button to select an additional CSV"
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            Button:
+                text: "Select CSV file"
+                on_release: root.add_csv()
+            Button:
+                text: "Select ArcGIS Layer"
+                on_release: root.add_gis()
+
+<SettingWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        Button:
+            text: "Lab Counts"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.show_count()
+            on_release: root.setup_popup.dismiss()
+        Button:
+            text: "Change Camera Source"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.camera_source()
+            on_release: root.setup_popup.dismiss()
+        Button:
+            text: "Start from new CSV"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.storage()
+            on_release: root.setup_popup.dismiss()
+        Button:
+            text: "Append new CSV"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.append()
+            on_release: root.setup_popup.dismiss()
+        Button:
+            text: "Choose Memory File"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.memory()
+            on_release: root.setup_popup.dismiss()
+        Button:
+            text: "Change CSV Headers"
+            size_hint: None, None
+            size: self.parent.width, 40
+            on_release: root.headers()
+            on_release: root.setup_popup.dismiss()
+
+<AlterHeaderWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        Label:
+            text: "Enter the header titles for each of the needed columns"
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 30
+            Label:
+                text: "Location ID"
+            TextInput:
+                id: location
+                size_hint_y: None
+                height: 30
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 30
+            Label:
+                text: "Sample Method"
+            TextInput:
+                id: method
+                size_hint_y: None
+                height: 30
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 30
+            Label:
+                text: "Sample Type"
+            TextInput:
+                id: type
+                size_hint_y: None
+                height: 30
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 30
+            Label:
+                text: "Sample Bag ID"
+            TextInput:
+                id: bag_id
+                size_hint_y: None
+                height: 30
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 30
+            Label:
+                text: "Date and Time"
+            TextInput:
+                id: date
+                size_hint_y: None
+                height: 30
+                use_bubble: True
+                use_handles: True
+                write_tab: False
+        Button:
+            text: "Finished"
+            size_hint: None, None
+            size: 230, 40
+            on_release: root.finish()
+            on_release: root.header_popup.dismiss()
+
+<MemoryWidget>:
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        Label:
+            text: "Do you have an existing memory file for this data set"
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            Button:
+                text: "No"
+                size_hint: None, None
+                size: 230, 40
+                on_release: root.no_memory()
+                on_release: root.memory_popup.dismiss()
+            Button:
+                text: "Yes"
+                size_hint: None, None
+                size: 230, 40
+                on_release: root.find_memory()
+
+<ErrorMessageWidget>:
+    orientation: 'vertical'
+    Label:
+        id: message
+        halign: 'center'
+        markup: True
+
+<LabCountWidget>:
+    orientation: 'vertical'
+    Label:
+        id: message
+        halign: 'center'
+        markup: True

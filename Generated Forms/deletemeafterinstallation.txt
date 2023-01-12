@@ -1,0 +1,4 @@
+This file exists only so that pyinstaller counts this folder and includes it in its packaging, and thus its included
+within the CoC PDF Tool.exe and is thus included in the installation on the users computer.
+
+##### YOU CAN DELETE THIS IF YOU ARE A USER AND YOU SEE THIS IN YOUR 'Generated Forms' FOlDER. #####
