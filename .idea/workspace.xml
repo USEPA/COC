@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Add Compiled Executable Zip" />
+    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Add lfs" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,6 +21,7 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
   </component>
   <component name="GitSEFilterConfiguration">
     <file-type-list>
@@ -215,7 +216,21 @@
       <option name="project" value="LOCAL" />
       <updated>1674231665777</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Add lfs">
+      <created>1679868735431</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1679868735431</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Add lfs">
+      <created>1679869197520</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1679869197520</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -241,6 +256,7 @@
     <MESSAGE value="updating idea" />
     <MESSAGE value="Reformat and Combine data" />
     <MESSAGE value="Add Compiled Executable Zip" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add Compiled Executable Zip" />
+    <MESSAGE value="Add lfs" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add lfs" />
   </component>
 </project>
