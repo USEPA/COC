@@ -56,8 +56,7 @@ from tkinter.filedialog import askopenfilename
 To be worked on:
     Add direct access
         restructure code to use either csv or gis
-            add selection at start & at append
-                select for epa/oneepa
+            No CSV Selected when layer is selected  <-- Fix this
             add check for valid source layer
             restructure appending source
                 redesign internal storage to only store the necessities
@@ -995,7 +994,8 @@ class StorageWidget(BoxLayout):
                     continue
                 if sample[sample_id_col] not in bag_counts.keys():
                     bag_counts[sample[sample_id_col]] = 0
-                temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
+                fixed_time = sample[date_time_col].replace(',','')
+                temp_time = datetime.strptime(fixed_time, "%m/%d/%Y %I:%M:%S %p")
                 timezone = get_localzone()
                 time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
                 dataList.append([sample[location_col], sample[sample_method_col], sample[sample_type_col],
@@ -1069,14 +1069,18 @@ class OnlineWidget(BoxLayout):
             self.popup_widget.dismiss()
         first = gis_query[0]
         gis_name = first.title
+        print(gis_name)
         layers = first.layers
         initial = layers[0]
         features = initial.query(
             out_fields=[location_gis, sample_method_gis, sample_type_gis, date_time_gis, sample_id_gis],
             return_geometry=False
         ).to_dict()['features']
+        print(features)
         for i in range(len(features)):
             temp = features[i]['attributes']
+            if temp[sample_id_gis] == None:
+                continue
             if temp[sample_id_gis] not in bag_counts.keys():
                 bag_counts[temp[sample_id_gis]] = 0
             s = temp[date_time_gis] / 1000.0
@@ -1085,6 +1089,7 @@ class OnlineWidget(BoxLayout):
             dataList.append([temp[location_gis], temp[sample_method_gis], temp[sample_type_gis], temp_time, temp[sample_id_gis]])
             bag_counts[temp[sample_id_gis]] += 1
         # print(count[0][3])
+        print(dataList)
         if source == StorageWidget:
             usedData = []
             csvTitle = gis_name
@@ -1142,7 +1147,8 @@ class AppendWidget(BoxLayout):
                     if len(copies) == 0:
                         if sample[sample_id_col] not in bag_counts.keys():
                             bag_counts[sample[sample_id_col]] = 0
-                        temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
+                        fixed_time = sample[date_time_col].replace(',','')
+                        temp_time = datetime.strptime(fixed_time, "%m/%d/%Y %I:%M:%S %p")
                         timezone = get_localzone()
                         time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
                         dataList.append([sample[location_col], sample[sample_method_col], sample[sample_type_col],
