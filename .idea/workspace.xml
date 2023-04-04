@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Add lfs" />
+    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Add Zip">
+      <change afterPath="$PROJECT_DIR$/A4 and B1_Memory.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CWA Training Samples_Memory.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Samples_1_Memory.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/COC_PDF_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/COC_PDF_tool.spec" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.spec" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -49,8 +56,7 @@
   &quot;keyToString&quot;: {
     &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
     &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;
   }
 }</component>
   <component name="PyFindUsagesOptions">
@@ -79,17 +85,17 @@
       <method v="2" />
     </configuration>
     <configuration name="COC_PDF_tool" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="COC PDF Tool" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/COC_PDF_tool.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -230,7 +236,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679869197520</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Add Zip">
+      <created>1679869298244</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1679869298244</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -257,6 +270,7 @@
     <MESSAGE value="Reformat and Combine data" />
     <MESSAGE value="Add Compiled Executable Zip" />
     <MESSAGE value="Add lfs" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add lfs" />
+    <MESSAGE value="Add Zip" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add Zip" />
   </component>
 </project>

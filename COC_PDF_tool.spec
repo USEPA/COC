@@ -5,7 +5,7 @@ block_cipher = None
 from kivy_deps import sdl2, glew
 
 b = [
-    ('C:\\Users\\jdeagan\\AppData\\Roaming\\Python\\Python310\\site-packages\\pyzbar\\*','.\\pyzbar'),
+    ('C:\\Users\\jdeagan\\AppData\\Roaming\\Python\\Python310\\site-packages\\pyzbar\\*','.\\pyzbar')
     ]
 
 added_paths = [
