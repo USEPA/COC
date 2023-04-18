@@ -60,6 +60,7 @@ To be worked on:
             restructure appending source
                 redesign internal storage to only store the necessities
             rename confirmation text to reference which source was used
+    figure out why it doesn't run on regular laptops
 """
 
 data_collected = False  # add check for csv or gis

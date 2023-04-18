@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Add Zip">
-      <change afterPath="$PROJECT_DIR$/A4 and B1_Memory.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CWA Training Samples_Memory.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Samples_1_Memory.txt" afterDir="false" />
+    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Fix time source discrepancies">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/COC_PDF_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/COC_PDF_tool.spec" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.spec" afterDir="false" />
@@ -169,10 +166,10 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Combine_Format" />
-      <item itemvalue="Python.Results_Format" />
       <item itemvalue="Python.BlankForm" />
       <item itemvalue="Python.COC_PDF_tool" />
+      <item itemvalue="Python.Combine_Format" />
+      <item itemvalue="Python.Results_Format" />
       <item itemvalue="Python.test" />
     </list>
     <recent_temporary>
@@ -243,7 +240,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679869298244</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Fix time source discrepancies">
+      <created>1680635313894</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1680635313894</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -271,6 +275,7 @@
     <MESSAGE value="Add Compiled Executable Zip" />
     <MESSAGE value="Add lfs" />
     <MESSAGE value="Add Zip" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add Zip" />
+    <MESSAGE value="Fix time source discrepancies" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix time source discrepancies" />
   </component>
 </project>
