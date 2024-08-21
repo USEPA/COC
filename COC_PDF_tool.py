@@ -28,6 +28,7 @@ import numpy as np
 from PIL import Image
 from pyzbar import pyzbar
 from arcgis.gis import GIS
+from arcgis.geometry.filters import contains
 from pyzbar.pyzbar import ZBarSymbol
 from imutils.video import VideoStream
 
@@ -49,6 +50,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import BaseDocTemplate, Table, TableStyle, Paragraph, Frame, PageTemplate, PageBreak
+from reportlab.platypus.flowables import Flowable
 from tkinter import Tk  # from tkinter import Tk for Python 3.x
 from tkinter.filedialog import askopenfilename
 
@@ -74,30 +76,29 @@ selector = BoxLayout(orientation='horizontal')
 sys_id = os.environ["COMPUTERNAME"]
 epa_url = 'https://epa.maps.arcgis.com/home/content.html'
 oneepa_url = 'https://oneepa.maps.arcgis.com/home/content.html'
-epa_client_id = 'vpeanPqMcHdq7G6z' # EPA
-oneepa_client_id = 'tEHtLLr2xrIVpp3k' # OneEPA
+epa_client_id = 'vpeanPqMcHdq7G6z'  # EPA
+oneepa_client_id = 'tEHtLLr2xrIVpp3k'  # OneEPA
 gis_owner = "jdeagan_oneepa"  # clear this out
 gis_title = "Background Survey Test"  # clear this out
 accessed_server = -1
 sample_id_col = -1
 date_time_col = -1
-location_col = -1
 sample_type_col = -1
 sample_method_col = -1
 sample_id_head = 'sample bag id'
 date_time_head = 'start time/date'
-location_head = 'combined id'
 sample_type_head = 'sample type'
 sample_method_head = 'collection method'
-sample_id_gis = "Sample_Bag_ID"
-date_time_gis = "Start_Time_Date"
-location_gis = "Combined_ID"
-sample_type_gis = "Sample_Type"
-sample_method_gis = "Collection_Method"
+sample_id_gis = "sample_bag_id"
+date_time_gis = "start_time_date"
+# sample_type_gis = "Sample_Type"
+sample_type_gis = "sampling_type"
+# sample_method_gis = "Collection_Method"
+sample_method_gis = "TYPE"
 video_source = 'Integrated'
-contact = "Anne Busher; 440-539-0787"
-contact_name = "Anne Busher"
-contact_num = "440-539-0787"
+contact = "Mia Mattioli; 404-718-5643"
+contact_name = "Mia Mattioli"
+contact_num = "404-718-5643"
 location = ""
 curMemory = ""
 csvTitle = ""
@@ -140,23 +141,23 @@ char_dict_code_to_special = {"!@!a1!": "à", "!@!a2!": "á", "!@!a3!": "â", "!@
                              "!@!O7!": "Ø", "!@!U1!": "Ù", "!@!U2!": "Ú", "!@!U3!": "Û", "!@!U4!": "Ü", "!@!Y1!": "Ý",
                              "!@!B1!": "Þ", "!@!Y2!": "ß"}
 
-bio_edd_header = ["LRN Sample ID (if different)", "Sample Type Sponge, Vac, or extract", "EPA Sample ID",
-                  "Date Received", "Date Processed", "Date Plated", "Total Sample Volume mL (final extract)",
-                  "CFU per 100 µL Spread Plate 10^-1", "", "", "CFU per 100 µL Spread Plate 10^-2", "", "",
-                  "CFU per 100 µL Spread Plate 10^-3", "", "", "CFU per 100 µL Spread Plate 10^-4", "", "",
-                  "CFU per 1 mL Micro Funnel Filter Plate 10^0", "", "",
-                  "CFU per 5 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "",
-                  "CFU per 10 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "", "CFU/Sample", "NOTES"]
-chem_edd_header = ["Samp_No", "Lab_Location_ID", "Matrix_ID", "Sample_Type_Code", "Lab_Coc_No", "Date_Collected",
-                   "Date_Received", "Date_Extracted", "Date_Analyzed", "Lab_Name", "Lab_Samp_No", "Lab_Batch_No",
-                   "Analysis", "Analytical_Method", "Extraction_Method", "Cas_no", "Analyte", "Detected", "Result",
-                   "Result_Qualifier", "Lab_Result_Qualifier", "Result_Units", "MDL", "MDL_Units", "Quantitation_Limit",
-                   "Quantitation_Limit_Units", "Reporting_Limit", "Reporting_Limit_Units", "Reportable_Result",
-                   "Result_Type_Code", "QC_Type", "Percent_Solids", "Percent_Lipids", "Percent_Moisture",
-                   "Total_or_Dissolved", "Test_Type", "Basis", "Dilution_Factor", "Percent_Recovery",
-                   "SubSample_Amount", "SubSample_Amount_Unit", "Final_Volume", "Final_Volume_Unit", "Comments",
-                   "QAFlag", "QA_Date", "QA_Comment", "QA_UserName"]
-sample_types = ["Bio", "Chem"]
+# bio_edd_header = ["LRN Sample ID (if different)", "Sample Type Sponge, Vac, or extract", "EPA Sample ID",
+#                   "Date Received", "Date Processed", "Date Plated", "Total Sample Volume mL (final extract)",
+#                   "CFU per 100 µL Spread Plate 10^-1", "", "", "CFU per 100 µL Spread Plate 10^-2", "", "",
+#                   "CFU per 100 µL Spread Plate 10^-3", "", "", "CFU per 100 µL Spread Plate 10^-4", "", "",
+#                   "CFU per 1 mL Micro Funnel Filter Plate 10^0", "", "",
+#                   "CFU per 5 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "",
+#                   "CFU per 10 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "", "CFU/Sample", "NOTES"]
+# chem_edd_header = ["Samp_No", "Lab_Location_ID", "Matrix_ID", "Sample_Type_Code", "Lab_Coc_No", "Date_Collected",
+#                    "Date_Received", "Date_Extracted", "Date_Analyzed", "Lab_Name", "Lab_Samp_No", "Lab_Batch_No",
+#                    "Analysis", "Analytical_Method", "Extraction_Method", "Cas_no", "Analyte", "Detected", "Result",
+#                    "Result_Qualifier", "Lab_Result_Qualifier", "Result_Units", "MDL", "MDL_Units", "Quantitation_Limit",
+#                    "Quantitation_Limit_Units", "Reporting_Limit", "Reporting_Limit_Units", "Reportable_Result",
+#                    "Result_Type_Code", "QC_Type", "Percent_Solids", "Percent_Lipids", "Percent_Moisture",
+#                    "Total_or_Dissolved", "Test_Type", "Basis", "Dilution_Factor", "Percent_Recovery",
+#                    "SubSample_Amount", "SubSample_Amount_Unit", "Final_Volume", "Final_Volume_Unit", "Comments",
+#                    "QAFlag", "QA_Date", "QA_Comment", "QA_UserName"]
+# sample_types = ["Bio", "Chem"]
 
 dataList = []
 curData = []
@@ -177,7 +178,7 @@ style = styles['Normal']
 # create custom styles for the table to use for the Paragraphs
 tableStyle = ParagraphStyle('Table Body',
                             fontName="Helvetica",
-                            fontSize=8,
+                            fontSize=7,
                             parent=styles['Normal'],
                             alignment=0,  # Left side
                             spaceAfter=10)
@@ -203,58 +204,254 @@ class BaseColors:
     UNDERLINE = ''
 
 
-def build_pdf(lab_name, num, data, samp_type):
+class verticalText(Flowable):
+
+    def __init__(self, text):
+        Flowable.__init__(self)
+        self.text = text
+
+    def draw(self):
+        canvas = self.canv
+        canvas.rotate(90)
+        fs = canvas._fontsize
+        canvas.translate(1, -fs / 1.2)  # canvas._leading?
+        canvas.drawString(0, 0, self.text)
+
+    def wrap(self, aW, aH):
+        canv = self.canv
+        fn, fs = canv._fontname, canv._fontsize
+        return canv._leading, 1 + canv.stringWidth(self.text, fn, fs)
+
+
+class verticalTexts(Flowable):
+
+    def __init__(self, text):
+        Flowable.__init__(self)
+        self.text = text
+
+    def draw(self):
+        canvas = self.canv
+        canvas.rotate(90)
+        fs = canvas._fontsize
+        canvas.translate(1, -fs / 2)  # canvas._leading?
+        tempText = self.text.split('\n')
+        for item in range(len(tempText)):
+            canvas.drawString(0, item * -10, tempText[item])
+
+    def wrap(self, aW, aH):
+        canv = self.canv
+        fn, fs = canv._fontname, canv._fontsize
+        return canv._leading, 1 + canv.stringWidth(self.text, fn, fs)
+
+
+def build_pdf(lab_name, num, data):
     global pdf_details, curDir, containers, preservative, bio_edd_header, chem_edd_header, sample_types, \
         bad_file_name_list, empty_dict
+    details = pdf_details[0]
     # start the document
     name = lab_name + " " + num
     new_name = convert(name, bad_file_name_list, empty_dict, True)
     doc = BaseDocTemplate("%s/Generated Forms/%s_CoC.pdf" % (curDir, new_name),
                           pagesize=(11 * inch, 8.5 * inch),
-                          rightMargin=50,
-                          leftMargin=50,
-                          topMargin=10,
-                          bottomMargin=63)
+                          rightMargin=inch * 0.6,
+                          leftMargin=inch * 0.6,
+                          topMargin=inch * 0.6,
+                          bottomMargin=inch * 0.6)
 
-    y = doc.bottomMargin + (doc.height / 4) + 65
+    # y1 = doc.bottomMargin + (doc.height / 4) + 65
+    # y2 = doc.bottomMargin + 50
 
     frame3 = Frame(doc.leftMargin,
-                   y,
+                   doc.bottomMargin,
                    doc.width,
-                   (doc.height / 2) - 35,
+                   doc.height,
                    leftPadding=0,
                    bottomPadding=0,
                    rightPadding=0,
                    topPadding=0,
                    id='top')
 
-    template = PageTemplate(id='main', frames=[frame3], onPage=all_write)
-    doc.addPageTemplates([template])
+    template1 = PageTemplate(id='main', frames=[frame3])
+    header1 = [
+        ["CENTERS FOR DISEASE CONTROL AND PREVENTION", "", "", "", "", "CHAIN OF CUSTODY RECORD", "", "", "", "", "",
+         "", "", ""],
+        ["WATERBORNE DISEASE PREVENTION BRANCH", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        [f"SHIP TO: {details[0]}", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        [f"ATTN: {details[1]}", "", "", "", f"PHONE: {details[2]}", "", "", "", "", "", "", "", "", ""],
+        ["CLIENT NAME:", "", "", "", "PROJECT:",
+         verticalTexts("Grab (G), Composite (C), or\nUltrafilter (UF)"),
+         verticalText("Sodium Thiosulfate Added (Y/N)"),
+         verticalTexts("Free chlorine (mg/L, enter total\nchlorine on reverse)"),
+         verticalText("pH"), verticalText("Temperature (°C)"), verticalText("Total Dissolved Solids (ppm)"),
+         verticalText("Conductivity (μS/cm)"), verticalText("Salinity (ppm)"), "CSID\n(LAB USE ONLY)"],
+        ["ADDRESS:", "", "", "", "PHONE:\nFAX:\nEMAIL:", "", "", "", "", "", "", "", "", ""],
+        ["PROJECT MANAGER:", "", "", "", "SAMPLER:", "", "", "", "", "", "", "", "", ""],
+        ["DATE", "TIME", "VOLUME", "SMPL\nTYPE", "SAMPLE IDENTIFICATION", "", "", "", "", "", "", "", "", ""]]
 
-    data2 = [
-        ["Lab#", "Sample #", "Collection Method", "Sample\nType", "Collected", "Time\nCollected",
-         "Numb\nCont", "Container", "Preservative"]
-    ]
+    header2 = [
+        ["CENTERS FOR DISEASE CONTROL AND PREVENTION", "", "", "", "CHAIN OF CUSTODY RECORD", "", "", "", "", ""],
+        [f"WATERBORNE DISEASE PREVENTION BRANCH\n{details[0]}", "", "", "", "", "", "", "", "", ""],
+        [f"ATTN: {details[1]}", "", f"PHONE: {details[2]}", "", "ULTRAFILTRATION VOLUME MEASUREMENT", "", "", "", "",
+         ""],
+        ["SAMPLE IDENTIFICATION", "LATITUDE", "LONGITUDE", "OTHER WATER\nMEASUREMENT(S)", "START\nTIME", "END TIME",
+         "START METER\nREADING", "END METER\nREADING", "FLOW RATE\nMEASUREMENTS (L/MIN)", ""]]
 
-    edd_data = []
-    if samp_type == sample_types[0]:
-        edd_data = [bio_edd_header]
-    elif samp_type == sample_types[1]:
-        edd_data = [chem_edd_header]
+    footer1 = [["SIGNATURE:", "", "", "PRINT NAME:", "", "DATE:", "", "", "TIME:", "", "SAMPLE CONDITION:", "", "",
+                "SAMPLE TYPE\nCODES:"],
+               ["RELINQUISHED BY:", "", "", "", "", "", "", "", "", "", "(FOR LAB USE ONLY)", "", "", ""],
+               ["", "", "", "", "", "", "", "", "", "", "Received On Ice", "", "Y    /    N", "W = Water"],
+               ["RECEIVED BY:", "", "", "", "", "", "", "", "", "", "", "", "", "SW = Surface Water"],
+               ["", "", "", "", "", "", "", "", "", "", "Container Intact", "", "Y    /    N", "GW = Ground Water"],
+               ["PLEASE SHIP SAMPLES ON ICE TO KEEP COLD DURING OVERNIGHT SHIPMENT", "", "", "", "", "", "", "", "", "",
+                "", "",
+                "", "DW = Drinking Water"],
+               ["(EXCEPT FOR NAEGLERIA FOWLERI TESTING-FOR WHICH SAMPLES SHOULD BE SHIPPED NON-CHILLED)", "", "", "",
+                "",
+                "", "", "", "", "", "Seals Present", "", "Y    /    N", "WW = Waste Water"],
+               ["", "", "", "", "", "", "", "", "", "", "", "", "", "PW = Pool Water"],
+               ["CDC Laboratory Notes Upon Receipt:", "", "", "", "", "", "", "", "", "", "Samples Missing", "",
+                "Y    /    N",
+                "SE = Sediment"],
+               ["", "", "", "", "", "", "", "", "", "", "", "", "", "SL = Sludge"],
+               ["", "", "", "", "", "", "", "", "", "", "Extra Samples", "", "Y    /    N", "OT = Other Matrix"],
+               ["", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+               ["", "", "", "", "", "", "", "", "", "", "Hold time exceeded", "", "Y    /    N", ""],
+               ["", "", "", "", "", "", "", "", "", "", "", "", "", ""]]
+
+    footer2 = [["PLEASE SHIP SAMPLES ON ICE TO KEEP COLD DURING OVERNIGHT SHIPMENT\n(EXCEPT FOR NAEGLERIA FOWLERI "
+                "TESTING-FOR WHICH SAMPLES SHOULD BE SHIPPED NON-CHILLED)", "", "", "", "", "", "", "", "", ""],
+               ["COMMENTS/FIELD OBSERVATIONS:", "", "", "", "", "", "", "", "", ""]]
+
+    doc.addPageTemplates([template1])
+    # [["Date","Time","Volume","Sample Type","Sample Identification","G,C,or UF","Sodium Added","Free Chlorine","pH",
+    #  "Temp","Dissolved Solids","Conductivity","Salinity"],
+    #  ["Sample Identification","Latitude","Longitude","Other measurements","Start Time","End Time","Start Reading",
+    #   "End Reading","Flow Rate",""]]
+    # data2 = [
+    #     ["Lab#", "Sample #", "Collection Method", "Sample\nType", "Collected", "Time\nCollected",
+    #      "Numb\nCont", "Container", "Preservative"]
+    # ]
+    data1 = []
+    data2 = []
+
+    tables = []
+
+    row_height1 = [inch / 4, inch / 4, inch * 0.15, inch * 0.15, inch * 0.4, inch * 0.72, inch * 0.3, inch * 0.3,
+                   inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2,
+                   inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.17, inch * 0.15, inch * 0.15, inch * 0.15,
+                   inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15,
+                   inch * 0.15, inch * 0.15, inch * 0.15]
+    row_height2 = [inch * 0.3, inch * 0.3, inch * 0.2, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3,
+                   inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3,
+                   inch * 0.4, inch * 2]
+    row_width1 = [inch * 0.7, inch * 0.7, inch / 2, inch * 0.4, inch * 2.3, inch * 0.4, inch * 0.49, inch * 0.49,
+                  inch * 0.49, inch * 0.49, inch * 0.49, inch * 0.49, inch * 0.49, inch * 1.2]
+    row_width2 = [inch * 1.7, inch * 1.4, inch * 1.4, inch * 1.2, inch * 0.49, inch * 0.49, inch * 0.8, inch * 0.8,
+                  inch * 0.7, inch * 0.6]
+    page1_style = TableStyle([('FONT', (0, 0), (-1, -1), 'Helvetica', 7),
+                              ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                              ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
+                              ('ALIGN', (5, 4), (-1, 4), 'CENTER'),
+                              ('ALIGN', (0, 20), (-1, 20), 'CENTER'),
+                              ('ALIGN', (10, 21), (12, 21), 'CENTER'),
+                              ('ALIGN', (12, 22), (12, -1), 'CENTER'),
+                              ('ALIGN', (0, 25), (9, 27), 'CENTER'),
+                              ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                              ('VALIGN', (0, 0), (4, 0), 'BOTTOM'),
+                              ('VALIGN', (5, 0), (-1, 0), 'MIDDLE'),
+                              ('VALIGN', (5, 4), (-1, 4), 'BOTTOM'),
+                              ('VALIGN', (0, 7), (4, 7), 'BOTTOM'),
+                              ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                              ('INNERGRID', (0, 0), (4, 1), 0.25, colors.white),
+                              ('INNERGRID', (0, 2), (4, 3), 0.25, colors.white),
+                              ('INNERGRID', (0, 25), (9, -1), 0.25, colors.white),
+                              ('INNERGRID', (10, 22), (12, -1), 0.25, colors.white),
+                              ('INNERGRID', (13, 22), (13, -1), 0.25, colors.white),
+                              ('SPAN', (0, 0), (4, 0)),
+                              ('SPAN', (0, 1), (4, 1)),
+                              ('SPAN', (0, 2), (4, 2)),
+                              ('SPAN', (0, 3), (3, 3)),
+                              ('SPAN', (0, 4), (3, 4)),
+                              ('SPAN', (0, 5), (3, 5)),
+                              ('SPAN', (0, 6), (3, 6)),
+                              ('SPAN', (5, 0), (-1, 3)),
+                              ('SPAN', (5, 4), (5, 7)),
+                              ('SPAN', (6, 4), (6, 7)),
+                              ('SPAN', (7, 4), (7, 7)),
+                              ('SPAN', (8, 4), (8, 7)),
+                              ('SPAN', (9, 4), (9, 7)),
+                              ('SPAN', (10, 4), (10, 7)),
+                              ('SPAN', (11, 4), (11, 7)),
+                              ('SPAN', (12, 4), (12, 7)),
+                              ('SPAN', (13, 4), (13, 7)),
+                              ('SPAN', (0, 20), (2, 20)),
+                              ('SPAN', (3, 20), (4, 20)),
+                              ('SPAN', (5, 20), (7, 20)),
+                              ('SPAN', (8, 20), (9, 20)),
+                              ('SPAN', (10, 20), (12, 20)),
+                              ('SPAN', (13, 20), (13, 21)),
+                              ('SPAN', (0, 21), (2, 22)),
+                              ('SPAN', (3, 21), (4, 22)),
+                              ('SPAN', (5, 21), (7, 22)),
+                              ('SPAN', (8, 21), (9, 22)),
+                              ('SPAN', (10, 21), (12, 21)),
+                              ('SPAN', (0, 23), (2, 24)),
+                              ('SPAN', (3, 23), (4, 24)),
+                              ('SPAN', (5, 23), (7, 24)),
+                              ('SPAN', (8, 23), (9, 24)),
+                              ('SPAN', (10, 22), (11, 23)),
+                              ('SPAN', (12, 22), (12, 23)),
+                              ('SPAN', (10, 24), (11, 25)),
+                              ('SPAN', (12, 24), (12, 25)),
+                              ('SPAN', (10, 26), (11, 27)),
+                              ('SPAN', (12, 26), (12, 27)),
+                              ('SPAN', (10, 28), (11, 29)),
+                              ('SPAN', (12, 28), (12, 29)),
+                              ('SPAN', (10, 30), (11, 31)),
+                              ('SPAN', (12, 30), (12, 31)),
+                              ('SPAN', (10, 32), (11, 33)),
+                              ('SPAN', (12, 32), (12, 33)),
+                              ('SPAN', (0, 25), (9, 25)),
+                              ('SPAN', (0, 26), (9, 27)),
+                              ('SPAN', (0, 28), (9, -1)),
+                              ])
+    page2_style = TableStyle([('FONT', (0, 0), (-1, -1), 'Helvetica', 8),
+                              ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                              ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                              ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                              ('INNERGRID', (0, 0), (3, 1), 0.25, colors.white),
+                              ('INNERGRID', (0, 2), (3, 2), 0.25, colors.white),
+                              ('SPAN', (0, 0), (3, 0)),
+                              ('SPAN', (0, 1), (3, 1)),
+                              ('SPAN', (0, 2), (1, 2)),
+                              ('SPAN', (2, 2), (3, 2)),
+                              ('SPAN', (4, 0), (-1, 1)),
+                              ('SPAN', (4, 2), (-1, 2)),
+                              ('SPAN', (8, 3), (9, 3)),
+                              ('SPAN', (0, 16), (-1, 16)),
+                              ('SPAN', (0, 17), (-1, 17)),
+                              ])
+    # edd_data = []
+    # if samp_type == sample_types[0]:
+    #     edd_data = [bio_edd_header]
+    # elif samp_type == sample_types[1]:
+    #     edd_data = [chem_edd_header]
     for i in range(len(data)):
         sample_part = data[i]
-        if sample_part[4] == '':
+        if sample_part[3] == '':
             continue
         # print(sample_part)
-        sample_tuple = (sample_part[1].lower(), sample_part[2].lower())
-        colec = Paragraph("%s" % sample_part[1], tableStyle)
-        sample_id = Paragraph("%s (%s)" % (sample_part[4], sample_part[0]), tableStyle)
-        s_type = Paragraph("%s" % sample_part[2], tableStyle)
+        sample_tuple = (sample_part[0].lower(), sample_part[1].lower())
+        colec = Paragraph("%s" % sample_part[0], tableStyle)
+        sample_id = Paragraph("%s" % sample_part[3], tableStyle)
+        s_type = Paragraph("%s" % sample_part[1], tableStyle)
+        latitude = Paragraph("%s" % sample_part[-1], tableStyle)
+        longitude = Paragraph("%s" % sample_part[-2], tableStyle)
         # print(sample_part)
 
         # Move this block to when the date is pulled from the csv [
 
-        time_value = sample_part[3]
+        time_value = sample_part[2]
 
         # ] Move this block to when the date is pulled from the csv
 
@@ -271,49 +468,83 @@ def build_pdf(lab_name, num, data, samp_type):
         # print(coll_time)
         d_time = Paragraph("%s" % coll_date, tableStyle)
         c_time = Paragraph("%s" % coll_time, tableStyle)
-        count = Paragraph("1", leftTable)
-        if sample_tuple in containers.keys():
-            contain = containers[sample_tuple]
-            preserve = preservative[sample_tuple]
-        else:
-            contain = ""
-            preserve = ""
-        data2.append(["", sample_id, colec, s_type, d_time, c_time, count, contain, preserve])
+        # count = Paragraph("1", leftTable)
+        # if sample_tuple in containers.keys():
+        #     contain = containers[sample_tuple]
+        #     preserve = preservative[sample_tuple]
+        # else:
+        #     contain = ""
+        #     preserve = ""
+        data1.append(
+            [d_time, c_time, "volume", s_type, sample_id, colec, "Y/N", "mg/L", "pH", "temp", "ppm", "μS/cm", "ppm",
+             ""])
+        data2.append(
+            [sample_id, latitude, longitude, "other", "startT", "endT", "startR", "endR", "flow rate", "flow rate 2"])
 
-        if samp_type == sample_types[0]:
-            edd_data.append(["", sample_part[1], "%s (%s)" % (sample_part[4], sample_part[0])])
-        elif samp_type == sample_types[1]:
-            # add condition check for column locations
-            edd_data.append(["%s (%s)" % (sample_part[4], sample_part[0]), lab_name,
-                             "",  # ? Matrix
-                             "", "", "%s %s" % (coll_date, coll_time), "", "", "", lab_name])
+        # if samp_type == sample_types[0]:
+        #     edd_data.append(["", sample_part[1], "%s (%s)" % (sample_part[4], sample_part[0])])
+        # elif samp_type == sample_types[1]:
+        #     # add condition check for column locations
+        #     edd_data.append(["%s (%s)" % (sample_part[4], sample_part[0]), lab_name,
+        #                      "",  # ? Matrix
+        #                      "", "", "%s %s" % (coll_date, coll_time), "", "", "", lab_name])
+        if (i + 1) % 12 == 0:
+            data1 = header1 + data1 + footer1
+            data2 = header2 + data2 + footer2
+            t1 = Table(data1,
+                       colWidths=row_width1,
+                       rowHeights=row_height1)
+            t2 = Table(data2,
+                       colWidths=row_width2,
+                       rowHeights=row_height2)
+            t1.setStyle(page1_style)
+            t2.setStyle(page2_style)
+            tables.append([t1])
+            tables.append([t2])
+            data1 = []
+            data2 = []
+    if len(data1) != 0:
+        while len(data1) < 12:
+            data1.append(["", "", "", "", "", "", "", "", "", "", "", "", "", ""])
+            data2.append(["", "", "", "", "", "", "", "", "", ""])
+
+        data1 = header1 + data1 + footer1
+        data2 = header2 + data2 + footer2
+
+        t1 = Table(data1,
+                   colWidths=row_width1,
+                   rowHeights=row_height1)
+        t2 = Table(data2,
+                   colWidths=row_width2,
+                   rowHeights=row_height2)
+        t1.setStyle(page1_style)
+        t2.setStyle(page2_style)
+        tables.append([t1])
+        tables.append([t2])
 
     # row heights should be determined automatically, except for the first row
-    row_heights = len(data2) * [None]
-    row_heights[0] = (inch / 2) + 10
+    # row_heights = len(data2) * [None]
+    # row_heights[0] = (inch / 2) + 10
     # set table to include previous data, establishing any important column widths
-    t2 = Table(data2,
-               colWidths=[inch, inch, (3 * inch / 2) + 10, None, inch - 10, inch - 10, inch / 2, None, None],
-               rowHeights=row_heights,
-               splitByRow=True,
-               repeatRows=1)
-    t2.setStyle(TableStyle([('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 8),
-                            ('FONT', (0, 1), (-1, -1), 'Helvetica', 8),
-                            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                            ('ALIGN', (6, 0), (6, -1), 'RIGHT'),
-                            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-                            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                            ]))
+    final_table = Table(tables,
+                        splitByRow=True)
+    # t2.setStyle(TableStyle([('FONT', (0, 0), (-1, 0), 'Helvetica-Bold', 8),
+    #                         ('FONT', (0, 1), (-1, -1), 'Helvetica', 8),
+    #                         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+    #                         ('ALIGN', (6, 0), (6, -1), 'RIGHT'),
+    #                         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    #                         ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+    #                         ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+    #                         ]))
 
     # put the table in a format the document will read
-    text = [t2, PageBreak()]
+    text = [final_table, PageBreak()]
 
-    with open("%s/Generated Forms/%s_EDD.csv" % (curDir, new_name), 'w', newline='') as eddForm:
-        writer = csv.writer(eddForm)
-
-        for row in edd_data:
-            writer.writerow(row)
+    # with open("%s/Generated Forms/%s_EDD.csv" % (curDir, new_name), 'w', newline='') as eddForm:
+    #     writer = csv.writer(eddForm)
+    #
+    #     for row in edd_data:
+    #         writer.writerow(row)
 
     # build the document
     doc.build(text, canvasmaker=PageNumCanvas)
@@ -328,71 +559,6 @@ def form_number():
     form_num = month + day + year + "-" + hour + minute + second
     return form_num
 
-
-# create the function for writing all of the header information on every page
-def head(canvas, docum):
-    global pdf_details, location, contact
-    details = pdf_details[0]
-    canvas.saveState()
-    # canvas.setFont('Times-Roman', 9)
-    # canvas.drawString(doc.leftMargin, doc.height+30, "Page %d" % doc.page)
-    canvas.setFont('Helvetica-Bold', 8)
-    h = docum.height + 13
-    canvas.drawString(docum.leftMargin + 4, h, "USEPA")
-    canvas.drawCentredString((docum.width + 90) / 2, h, "CHAIN OF CUSTODY RECORD")
-    canvas.setFont('Helvetica-Bold', 10)
-    canvas.drawRightString(docum.width + 40, h, "No: %s" % form_number())
-    canvas.setFont('Helvetica', 8)
-    h = h - 13
-    canvas.drawString(docum.leftMargin + 4, h, "DateShipped: ")
-    canvas.drawCentredString((docum.width + 90) / 2, h, location)
-    canvas.drawRightString(docum.width + 40, h, "Cooler #: ")
-    h = h - 13
-    canvas.drawString(docum.leftMargin + 4, h, "CarrierName: ")
-    canvas.drawCentredString((docum.width + 90) / 2, h, "Lab Contact: %s" % details[1])
-    canvas.drawRightString(docum.width + 40, h, "Lab: %s" % details[0])
-    h = h - 13
-    canvas.drawString(docum.leftMargin + 4, h, "AirbillNo: ")
-    canvas.drawCentredString((docum.width + 90) / 2, h, "EPA Contact: %s" % contact)
-    canvas.drawRightString(docum.width + 40, h, "Lab Phone: %s" % details[2])
-    canvas.restoreState()
-
-
-# create the function for drawing the lower 2 tables that don't get automatically filled in
-def mid(canvas, docum):
-    canvas.saveState()
-    mid_y = (inch * 3) + 17
-    # mid_y = mid_y - 13
-    canvas.setFont('Helvetica-Bold', 8)
-    # canvas.drawString((inch * 8) - 37, mid_y, "SAMPLES TRANSFERRED FROM")
-    canvas.drawString((inch * 8) + 37, mid_y, "HAZMAT #")
-    canvas.setFont('Helvetica', 8)
-    canvas.drawString(inch - 18, mid_y, "Special Instructions:")
-    mid_y = mid_y - 37
-    canvas.drawString(inch - 13, mid_y, "Items/Reason        Relinquished by (Signature and Organization)            "
-                                        "Date/Time              Received by (Signature and Organization)               "
-                                        "Date/Time         Sample Condition Upon Receipt")
-    canvas.rect(inch - 22, mid_y + 20, docum.width, (inch / 2) + 3, fill=0)
-    canvas.line(8.4 * inch, mid_y + 20, 8.4 * inch, mid_y + 23 + (inch / 2))
-    # canvas.line(7.4 * inch, mid_y + 10 + (inch / 2), 10.3 * inch, mid_y + 10 + (inch / 2))
-    canvas.rect(inch - 22, inch - 5, docum.width, inch * 1.9)
-    canvas.line(inch - 22, inch * 2.65, inch - 22 + docum.width, inch * 2.65)
-    canvas.line(inch - 22, inch * 2.3, inch - 22 + docum.width, inch * 2.3)
-    canvas.line(inch - 22, inch * 1.95, inch - 22 + docum.width, inch * 1.95)
-    canvas.line(inch - 22, inch * 1.6, inch - 22 + docum.width, inch * 1.6)
-    canvas.line(inch - 22, inch * 1.26, inch - 22 + docum.width, inch * 1.26)
-    canvas.line(1.65 * inch, inch - 5, 1.65 * inch, inch * 2.82)
-    canvas.line(4.15 * inch, inch - 5, 4.15 * inch, inch * 2.82)
-    canvas.line(5.1 * inch, inch - 5, 5.1 * inch, inch * 2.82)
-    canvas.line(7.6 * inch, inch - 5, 7.6 * inch, inch * 2.82)
-    canvas.line(8.55 * inch, inch - 5, 8.55 * inch, inch * 2.82)
-    canvas.restoreState()
-
-
-# call the other 2 functions
-def all_write(canvas, docum):
-    head(canvas, docum)
-    mid(canvas, docum)
 
 
 def store(main_screen):
@@ -505,8 +671,8 @@ class MainScreenWidget(BoxLayout):
         global data_collected
         if not data_collected:
             return False
-        elif location == '':
-            return False
+        # elif location == '':
+        #     return False
         return True
 
     def exit(self, *args):
@@ -522,8 +688,9 @@ class MainScreenWidget(BoxLayout):
         global selector, lab_drop_btn
         screen_label = self.ids.screen_label
         if not self.can_start():
-            screen_label.text = f"{BaseColors.WARNING}CSV or Location not provided, " \
-                                f"please correct{BaseColors.ENDC}"
+            # screen_label.text = f"{BaseColors.WARNING}CSV or Location not provided, " \
+            #                     f"please correct{BaseColors.ENDC}"
+            screen_label.text = f"{BaseColors.WARNING}CSV not provided, please correct{BaseColors.ENDC}"
             return False
         scan_button = ScanWidget()
         scan_button.main_window = self
@@ -542,8 +709,9 @@ class MainScreenWidget(BoxLayout):
         global selector, lab_drop_btn, method_drop_btn
         screen_label = self.ids.screen_label
         if not self.can_start():
-            screen_label.text = f"{BaseColors.WARNING}CSV or Location not provided, " \
-                                f"please correct{BaseColors.ENDC}"
+            # screen_label.text = f"{BaseColors.WARNING}CSV or Location not provided, " \
+            #                     f"please correct{BaseColors.ENDC}"
+            screen_label.text = f"{BaseColors.WARNING}CSV not provided, please correct{BaseColors.ENDC}"
             return False
         populate_button = PopulateWidget()
         populate_button.main_window = self
@@ -577,16 +745,16 @@ class MainScreenWidget(BoxLayout):
         rows_section.height += 61
         rows_section.add_widget(new_row)
 
-    def choose_type(self):
-        samp_type = ContaminantWidget()
-        samp_type.main_window = self
-        samp_type.contam_widget_popup = Popup(title="select a Sample Type", content=samp_type,
-                                              size_hint=(None, None),
-                                              size=(500, 150), auto_dismiss=False)
-        samp_type.main_screen = self
-        samp_type.contam_widget_popup.open()
+    # def choose_type(self):
+    #     samp_type = ContaminantWidget()
+    #     samp_type.main_window = self
+    #     samp_type.contam_widget_popup = Popup(title="select a Sample Type", content=samp_type,
+    #                                           size_hint=(None, None),
+    #                                           size=(500, 150), auto_dismiss=False)
+    #     samp_type.main_screen = self
+    #     samp_type.contam_widget_popup.open()
 
-    def start_pdf(self, samp_type):
+    def start_pdf(self):
         global pdf_details, usedData, dataList, curData, lab_counts, pop_counts
         error_text = "CoC PDF cannot be made with zero samples selected\nPlease select samples then try again"
         lab_name = pdf_details[0][0]
@@ -597,7 +765,7 @@ class MainScreenWidget(BoxLayout):
         # Add popup for selecting sample type
 
         num = str(form_number())
-        build_pdf(lab_name, num, curData, samp_type)
+        build_pdf(lab_name, num, curData)
         # print("Built")
         count = lab_counts[lab_name] + len(curData)
         lab_counts[lab_name] = count
@@ -682,8 +850,8 @@ class MainScreenWidget(BoxLayout):
                 test_list = list(finder)
                 if barcode_data in bag_counts.keys():
                     sample = test_list[0]
-                    if [sample[0], sample[4]] not in found:
-                        found.append([sample[0], sample[4]])
+                    if [sample[2], sample[3]] not in found:
+                        found.append([sample[2], sample[3]])
                         curData.append(sample)
                         Clock.schedule_once(partial(self.add_row, barcode_data))
                         screen_label.text = f"{BaseColors.OKGREEN}%s added to outgoing sample list" \
@@ -725,8 +893,8 @@ class MainScreenWidget(BoxLayout):
                 new_num = int(item.ids.rownumber.text) - 1
                 item.ids.rownumber.text = str(new_num)
         sample = curData.pop(num - 1)
-        if [sample[0], sample[4]] in found:
-            found.remove([sample[0], sample[4]])
+        if [sample[2], sample[3]] in found:
+            found.remove([sample[2], sample[3]])
         root.remove_widget(row)
         root.height -= 61
         self.num_rows -= 1
@@ -736,7 +904,7 @@ class MainScreenWidget(BoxLayout):
         storage_location = StorageWidget()
         storage_location.storage_popup = Popup(title="Select a storage location", content=storage_location,
                                                size_hint=(None, None),
-                                               size=(500, 310), auto_dismiss=False)
+                                               size=(500, 240), auto_dismiss=False)
         storage_location.main_screen = self
         storage_location.ids.contact_name.text = contact_name
         storage_location.ids.contact_num.text = contact_num
@@ -784,7 +952,7 @@ class MainScreenWidget(BoxLayout):
             temp_list = pickle.load(mem_file)
         usedData = temp_list[:len(temp_list) - 1]
         for sample in usedData:
-            found.append([sample[0], sample[4]])
+            found.append([sample[2], sample[3]])
         dict_list = temp_list[-1]
         for item in dict_list:
             lab_counts[item[0]] = item[1]
@@ -898,17 +1066,17 @@ class PopulateWidget(BoxLayout):
             track = 0
 
         for match in dataList[track:]:
-            if match[1].lower() == type_samples or type_samples == "any":
+            if match[0].lower() == type_samples or type_samples == "any":
                 # print(match[4] + ": " + str(dataList.count(match[4])))
-                if match[4] == "":
+                if match[3] == "":
                     continue
-                elif [match[0], match[4]] in found:  # add duplication error/check
+                elif [match[2], match[3]] in found:  # add duplication error/check
                     continue
-                if bag_counts[match[4]] > 1:
+                if bag_counts[match[3]] > 1:
                     warning_text = warning_text + "Sample %s is in the dataset %s times\n" % \
-                                   (match[4], bag_counts[match[4]])
+                                   (match[3], bag_counts[match[3]])
                 temp_data.append(match)
-                found.append([match[0], match[4]])
+                found.append([match[2], match[3]])
                 i += 1
                 if i >= count:
                     new_index = dataList.index(match) + 1
@@ -929,7 +1097,7 @@ class PopulateWidget(BoxLayout):
 
         # print(header)
         for sample in temp_data:
-            self.main_window.add_row(sample[4], 0)
+            self.main_window.add_row(sample[3], 0)
             curData.append(sample)
         self.main_window.add_button()
 
@@ -951,7 +1119,7 @@ class StorageWidget(BoxLayout):
     main_screen = None
 
     def store_data(self):
-        global dataList, bag_counts, location, contact_name, contact_num, contact, lab_counts, usedData, pop_counts
+        global dataList, bag_counts, contact_name, contact_num, contact, lab_counts, usedData, pop_counts
         screen_label = self.main_screen.ids.screen_label
         dataList = []  # need to reset pointers for pop, getting "all x found restarting search warning"
         bag_counts = {}
@@ -960,14 +1128,14 @@ class StorageWidget(BoxLayout):
             pop_counts[key] = 0
         for lab in lab_counts.keys():
             lab_counts[lab] = 0
-        location = self.ids.location.text
+        # location = self.ids.location.text
         contact_name = self.ids.contact_name.text
         contact_num = self.ids.contact_num.text
         contact = "%s; %s" % (contact_name, contact_num)
         return screen_label
 
     def get_csv_file(self):
-        global dataList, data_collected, sample_id_col, date_time_col, location_col, location_head, sample_id_head, \
+        global dataList, data_collected, sample_id_col, date_time_col, sample_id_head, \
             sample_type_head, date_time_head, sample_type_col, sample_method_col, sample_method_head, headers, \
             csvTitle, bag_counts
         screen_label = self.store_data()
@@ -978,9 +1146,7 @@ class StorageWidget(BoxLayout):
                 all_samples = list(reader)
             headers = all_samples[0]
             for col in headers:
-                if col.lower() == location_head:
-                    location_col = headers.index(col)
-                elif col.lower() == sample_id_head:
+                if col.lower() == sample_id_head:
                     sample_id_col = headers.index(col)
                 elif col.lower() == date_time_head:
                     date_time_col = headers.index(col)
@@ -1001,18 +1167,15 @@ class StorageWidget(BoxLayout):
                     temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
                     timezone = get_localzone()
                     time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
-                dataList.append([sample[location_col], sample[sample_method_col], sample[sample_type_col],
-                                 time_value, sample[sample_id_col]])
+                dataList.append([sample[sample_method_col], sample[sample_type_col],
+                                 time_value, sample[sample_id_col], sample[-2], sample[-1]])
                 bag_counts[sample[sample_id_col]] += 1
             temp = filename.split('/')
             csvTitle = temp[-1].split('.')[0]
-            # print(bag_counts)
-            # found = []
             screen_label.text = f"{BaseColors.OKGREEN}CSV Selected: {temp[-1]}{BaseColors.ENDC}\n" \
                                 f"{len(dataList)}"
             self.storage_popup.dismiss()
             self.main_screen.get_memory()
-        # print(location)
 
     def get_online_layer(self):
         screen_label = self.store_data()  # do something to set the label
@@ -1030,7 +1193,7 @@ class OnlineWidget(BoxLayout):
 
     def access_layer(self):
         global accessed_server, gis_owner, gis_title, epa_client_id, epa_url, oneepa_url, oneepa_client_id, \
-            sample_id_gis, sample_method_gis, sample_type_gis, location_gis, date_time_gis, data_collected, dataList, \
+            sample_id_gis, sample_method_gis, sample_type_gis, date_time_gis, data_collected, dataList, \
             bag_counts, usedData, lab_counts, csvTitle
         # set in checks for text fields being empty
         if self.ids.epa_server.state == 'down':
@@ -1044,22 +1207,17 @@ class OnlineWidget(BoxLayout):
         screen_label = self.main_screen.ids.screen_label
         query = 'type:feature AND owner:%s AND title:"%s"' % (gis_owner, gis_title)
         source = type(self.source_class)
-        # print(source)
 
         match accessed_server:
             case 0:
                 url = epa_url
                 client_id = epa_client_id
-                # print(url)
             case 1:
                 url = oneepa_url
                 client_id = oneepa_client_id
-                # print("test")
             case _:
                 url = ""
                 client_id = ""
-                # set error here
-                # print("fail")
         gis = GIS(url, client_id=client_id)
         gis_query = gis.content.search(query=query, max_items=15)
         if len(gis_query) == 0:
@@ -1076,12 +1234,12 @@ class OnlineWidget(BoxLayout):
         layers = first.layers
         initial = layers[0]
         features = initial.query(
-            out_fields=[location_gis, sample_method_gis, sample_type_gis, date_time_gis, sample_id_gis],
-            return_geometry=False
+            out_fields=[sample_method_gis, sample_type_gis, date_time_gis, sample_id_gis],
+            out_sr=4326
         ).to_dict()['features']
-        # print(features)
         for i in range(len(features)):
             temp = features[i]['attributes']
+            geometry = features[i]['geometry']
             if temp[sample_id_gis] == None:
                 continue
             if temp[sample_id_gis] not in bag_counts.keys():
@@ -1091,10 +1249,9 @@ class OnlineWidget(BoxLayout):
             # print(fixed_time)
             temp_time = datetime.strptime(datetime.strftime(fixed_time, "%m/%d/%Y %I:%M:%S %p"), "%m/%d/%Y %I:%M:%S %p")
             # print(temp_time)
-            dataList.append([temp[location_gis], temp[sample_method_gis], temp[sample_type_gis], temp_time, temp[sample_id_gis]])
+            dataList.append([temp[sample_method_gis], temp[sample_type_gis], temp_time, temp[sample_id_gis],
+                             geometry['x'], geometry['y']])
             bag_counts[temp[sample_id_gis]] += 1
-        # print(count[0][3])
-        # print(dataList)
         if source == StorageWidget:
             usedData = []
             csvTitle = gis_name
@@ -1113,8 +1270,8 @@ class AppendWidget(BoxLayout):
     main_screen = None
 
     def add_csv(self):
-        global dataList, data_collected, sample_id_col, date_time_col, location_col, location, bag_counts, \
-            location_head, sample_id_head, sample_type_head, date_time_head, sample_type_col, sample_method_col, \
+        global dataList, data_collected, sample_id_col, date_time_col, bag_counts, \
+            sample_id_head, sample_type_head, date_time_head, sample_type_col, sample_method_col, \
             sample_method_head, headers
 
         filename = store(self.main_screen)
@@ -1126,9 +1283,7 @@ class AppendWidget(BoxLayout):
                 all_samples = list(reader)
             headers = all_samples[0]
             for col in headers:
-                if col.lower() == location_head:
-                    location_col = headers.index(col)
-                elif col.lower() == sample_id_head:
+                if col.lower() == sample_id_head:
                     sample_id_col = headers.index(col)
                 elif col.lower() == date_time_head:
                     date_time_col = headers.index(col)
@@ -1141,12 +1296,12 @@ class AppendWidget(BoxLayout):
                 if sample[sample_id_col] == '':
                     continue
                 else:
-                    finder = filter(lambda a: sample[location_col] in a, dataList)
+                    finder = filter(lambda a: sample[date_time_col] in a, dataList)
                     existing = list(finder)
                     copies = []
                     # print(existing)
                     for finding in existing:
-                        if finding[location_col] == sample[location_col]:
+                        if finding[date_time_col] == sample[date_time_col]:
                             copies.append(finding)
                             break
                     if len(copies) == 0:
@@ -1159,14 +1314,14 @@ class AppendWidget(BoxLayout):
                             temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
                             timezone = get_localzone()
                             time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
-                        dataList.append([sample[location_col], sample[sample_method_col], sample[sample_type_col],
-                                         time_value, sample[sample_id_col]])
+                        dataList.append([sample[sample_method_col], sample[sample_type_col],
+                                         time_value, sample[sample_id_col], sample[-2], sample[-1]])
                         bag_counts[sample[sample_id_col]] += 1
             # print(dataList)
             temp = filename.split('/')
 
             screen_label.text = f"{BaseColors.OKGREEN}CSV added: {temp[-1]}{BaseColors.ENDC}\n" \
-                            f"{len(dataList)}"
+                                f"{len(dataList)}"
             self.append_popup.dismiss()
 
     def add_gis(self):
@@ -1200,13 +1355,13 @@ class SettingWidget(BoxLayout):
         camera.camera_popup.open()
 
     def storage(self):
-        global contact_num, contact_name, location
+        global contact_num, contact_name
         storage_location = StorageWidget()
         storage_location.storage_popup = Popup(title="Select a storage location", content=storage_location,
                                                size_hint=(None, None),
-                                               size=(500, 310), auto_dismiss=True)
+                                               size=(500, 240), auto_dismiss=True)
         storage_location.main_screen = self.main_screen
-        storage_location.ids.location.text = location
+        # storage_location.ids.location.text = location
         storage_location.ids.contact_name.text = contact_name
         storage_location.ids.contact_num.text = contact_num
         storage_location.storage_popup.open()
@@ -1232,75 +1387,21 @@ class SettingWidget(BoxLayout):
         header.header_popup.open()
 
 
-#
-# class StoreSettingWidget(BoxLayout):
-#     text = "Select the CSV with the sample data"
-#     storage_popup = None
-#
-#     def get_csv_file(self):
-#         global dataList, data_collected, sample_id_col, date_time_col, location_col, location, sample_type_col, \
-#             sample_method_col, sample_method_head, sample_id_head, sample_type_head, location_head, date_time_head, \
-#             headers, csvTitle, bag_counts, location, contact, contact_name, contact_num
-#         screen_label = self.main_screen.ids.screen_label
-#         filename = store(self.main_screen)
-#         dataList = []
-#         bag_counts = {}
-#         location = self.ids.location.text
-#         contact_name = self.ids.contact_name.text
-#         contact_num = self.ids.contact_num.text
-#         contact = "%s: %s" % (contact_name, contact_num)
-#         if data_collected:
-#             with open(filename, "r", encoding='utf-8-sig') as csvfile:
-#                 reader = csv.reader(csvfile)
-#                 allSamples = list(reader)
-#             headers = allSamples[0]
-#             for col in headers:
-#                 if col.lower() == location_head:
-#                     location_col = headers.index(col)
-#                 elif col.lower() == sample_id_head:
-#                     sample_id_col = headers.index(col)
-#                 elif col.lower() == date_time_head:
-#                     date_time_col = headers.index(col)
-#                 elif col.lower() == sample_type_head:
-#                     sample_type_col = headers.index(col)
-#                 elif col.lower() == sample_method_head:
-#                     sample_method_col = headers.index(col)
-#             allSamples = allSamples[1:]
-#             for sample in allSamples:
-#                 if sample[sample_id_col] == '':
-#                     continue
-#                 if sample[sample_id_col] not in bag_counts.keys():
-#                     bag_counts[sample[sample_id_col]] = 0
-#                 dataList.append(sample)
-#                 bag_counts[sample[sample_id_col]] += 1
-#             temp = filename.split('/')
-#             csvTitle = temp[-1].split('.')[0]
-#             # print(bag_counts)
-#             temp = filename.split('/')
-#             csvTitle = temp[-1].split('.')[0]
-#             # print(csvTitle)
-#             screen_label.text = f"{BaseColors.OKGREEN}CSV Selected: {temp[-1]}{BaseColors.ENDC}\n" \
-#                                 f"{len(dataList)}"
-#             self.storage_popup.dismiss()
-
-
 class AlterHeaderWidget(BoxLayout):
     header_popup = None
 
     def setup(self):
-        global location_head, sample_id_head, sample_type_head, date_time_head, sample_method_head
-        self.ids.location.text = location_head
+        global sample_id_head, sample_type_head, date_time_head, sample_method_head
         self.ids.bag_id.text = sample_id_head
         self.ids.type.text = sample_type_head
         self.ids.date.text = date_time_head
         self.ids.method.text = sample_method_head
 
     def finish(self):
-        global location_head, sample_id_head, sample_type_head, date_time_head, sample_method_head, \
-            sample_method_col, sample_type_col, sample_id_col, location_col, date_time_col, \
+        global sample_id_head, sample_type_head, date_time_head, sample_method_head, \
+            sample_method_col, sample_type_col, sample_id_col, date_time_col, \
             dataList, data_collected, headers
 
-        location_head = self.ids.location.text
         sample_id_head = self.ids.bag_id.text
         sample_type_head = self.ids.type.text
         date_time_head = self.ids.date.text
@@ -1308,9 +1409,7 @@ class AlterHeaderWidget(BoxLayout):
 
         if data_collected:
             for col in headers:
-                if col.lower() == location_head:
-                    location_col = headers.index(col)
-                elif col.lower() == sample_id_head:
+                if col.lower() == sample_id_head:
                     sample_id_col = headers.index(col)
                 elif col.lower() == date_time_head:
                     date_time_col = headers.index(col)
@@ -1363,16 +1462,6 @@ class ErrorMessageWidget(BoxLayout):
 
 class LabCountWidget(BoxLayout):
     lab_widget_popup = None
-
-
-class ContaminantWidget(BoxLayout):
-    main_window = None
-    contam_widget_popup = None
-
-    def set_sample_type(self, count):
-        global sample_types
-        self.main_window.start_pdf(sample_types[count])
-        # print("finish")
 
 
 class COCPDFToolApp(App):
@@ -1431,9 +1520,7 @@ class COCPDFToolApp(App):
         drop_menu_2.add_widget(btn)
         method_drop_btn.bind(on_release=drop_menu_2.open)
         drop_menu_2.bind(on_select=lambda instance, x: setattr(method_drop_btn, 'text', x))
-        # print(preservative[("rmc","field blank")])
-        # print(containers)
-        # print(pop_counts)
+
 
     def on_start(self):
         self.get_labs()

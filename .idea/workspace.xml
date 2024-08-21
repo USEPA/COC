@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Fix time source discrepancies">
+    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Update v1.2 README.md">
+      <change afterPath="$PROJECT_DIR$/AP_Hill_Feb_Base_test_2_Memory.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/AnCOR Media Blanks_0_Memory.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/Setup/vcredist_x64.exe" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dist/Setup/vcredist_x86.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/COC_PDF_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/COC_PDF_tool.spec" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.spec" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cocpdftool.kv" beforeDir="false" afterPath="$PROJECT_DIR$/cocpdftool.kv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/labs.csv" beforeDir="false" afterPath="$PROJECT_DIR$/labs.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +26,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Remove_online_feature" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -247,7 +252,21 @@
       <option name="project" value="LOCAL" />
       <updated>1680635313894</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Update exe to single file">
+      <created>1681835749920</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1681835749920</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Update v1.2 README.md">
+      <created>1682023773713</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1682023773713</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -276,6 +295,19 @@
     <MESSAGE value="Add lfs" />
     <MESSAGE value="Add Zip" />
     <MESSAGE value="Fix time source discrepancies" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix time source discrepancies" />
+    <MESSAGE value="Update exe to single file" />
+    <MESSAGE value="Update v1.2 README.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="Update v1.2 README.md" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

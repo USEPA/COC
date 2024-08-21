@@ -57,7 +57,7 @@
             font_size: 13
             color: (0, 0, 0, 1)
             background_color: (255, 255, 255, 1)
-            on_release: root.choose_type()
+            on_release: root.start_pdf()
         Button:
             id: exit
             text: "Exit"
@@ -282,19 +282,6 @@
         orientation: 'vertical'
         padding: (5, 5)
         spacing: 10
-        Label:
-            text: "Provide the location of the sampling site"
-            size_hint_x: None
-            width: self.parent.width
-            halign: 'right'
-        TextInput:
-            id: location
-            size_hint_y: None
-            height: 40
-            hint_text: "Sample Location"
-            use_bubble: True
-            use_handles: True
-            write_tab: False
         BoxLayout:
             orientation: 'horizontal'
             spacing: 10
@@ -461,18 +448,6 @@
         spacing: 10
         Label:
             text: "Enter the header titles for each of the needed columns"
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 30
-            Label:
-                text: "Location ID"
-            TextInput:
-                id: location
-                size_hint_y: None
-                height: 30
-                use_bubble: True
-                use_handles: True
-                write_tab: False
         BoxLayout:
             orientation: 'horizontal'
             spacing: 30
