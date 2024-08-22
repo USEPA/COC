@@ -13,7 +13,7 @@ Contact: Timothy Boe boe.timothy@epa.gov
 import os
 import os.path
 import sys
-import time
+# import time
 import pytz
 from datetime import datetime
 from tkinter import *
@@ -28,7 +28,6 @@ import numpy as np
 from PIL import Image
 from pyzbar import pyzbar
 from arcgis.gis import GIS
-from arcgis.geometry.filters import contains
 from pyzbar.pyzbar import ZBarSymbol
 from imutils.video import VideoStream
 
@@ -78,23 +77,17 @@ epa_url = 'https://epa.maps.arcgis.com/home/content.html'
 oneepa_url = 'https://oneepa.maps.arcgis.com/home/content.html'
 epa_client_id = 'vpeanPqMcHdq7G6z'  # EPA
 oneepa_client_id = 'tEHtLLr2xrIVpp3k'  # OneEPA
-gis_owner = "jdeagan_oneepa"  # clear this out
-gis_title = "Background Survey Test"  # clear this out
+gis_owner = "jdeagan_epa"  # clear this out
+gis_title = "Water Collection Test"  # clear this out
 accessed_server = -1
-sample_id_col = -1
-date_time_col = -1
-sample_type_col = -1
-sample_method_col = -1
-sample_id_head = 'sample bag id'
-date_time_head = 'start time/date'
-sample_type_head = 'sample type'
-sample_method_head = 'collection method'
-sample_id_gis = "sample_bag_id"
-date_time_gis = "start_time_date"
-# sample_type_gis = "Sample_Type"
-sample_type_gis = "sampling_type"
-# sample_method_gis = "Collection_Method"
-sample_method_gis = "TYPE"
+col_indexes = [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+csv_headers = ['collection method', 'sample type', 'time/date collected', 'sample bag id', 'sodium thiosulfate added',
+               'free chlorine (mg/l)', 'ph', 'temperature (°c)', 'total dissolved solids (ppm)', 'conductivity (μs/cm)',
+               'salinity (ppm)', 'volume', 'other water measurement(s)', 'start meter reading', 'end meter reading',
+               'flow rate measurements (l/min)', 'uf start time', 'uf end time']
+gis_headers = ["collection_method", "sample_type", "start_time_date", "sample_bag_id", "sodium", "free_chlorine", "ph",
+               "temperature", "dissolved_solids", "conductivity", "salinity", "volume", "other_measurement",
+               "start_meter", "end_meter", "flow_rate", "uf_start_time", "uf_end_time"]
 video_source = 'Integrated'
 contact = "Mia Mattioli; 404-718-5643"
 contact_name = "Mia Mattioli"
@@ -141,24 +134,6 @@ char_dict_code_to_special = {"!@!a1!": "à", "!@!a2!": "á", "!@!a3!": "â", "!@
                              "!@!O7!": "Ø", "!@!U1!": "Ù", "!@!U2!": "Ú", "!@!U3!": "Û", "!@!U4!": "Ü", "!@!Y1!": "Ý",
                              "!@!B1!": "Þ", "!@!Y2!": "ß"}
 
-# bio_edd_header = ["LRN Sample ID (if different)", "Sample Type Sponge, Vac, or extract", "EPA Sample ID",
-#                   "Date Received", "Date Processed", "Date Plated", "Total Sample Volume mL (final extract)",
-#                   "CFU per 100 µL Spread Plate 10^-1", "", "", "CFU per 100 µL Spread Plate 10^-2", "", "",
-#                   "CFU per 100 µL Spread Plate 10^-3", "", "", "CFU per 100 µL Spread Plate 10^-4", "", "",
-#                   "CFU per 1 mL Micro Funnel Filter Plate 10^0", "", "",
-#                   "CFU per 5 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "",
-#                   "CFU per 10 mL Micro Funnel Filter Plate 10^0        (Grab samples only)", "", "CFU/Sample", "NOTES"]
-# chem_edd_header = ["Samp_No", "Lab_Location_ID", "Matrix_ID", "Sample_Type_Code", "Lab_Coc_No", "Date_Collected",
-#                    "Date_Received", "Date_Extracted", "Date_Analyzed", "Lab_Name", "Lab_Samp_No", "Lab_Batch_No",
-#                    "Analysis", "Analytical_Method", "Extraction_Method", "Cas_no", "Analyte", "Detected", "Result",
-#                    "Result_Qualifier", "Lab_Result_Qualifier", "Result_Units", "MDL", "MDL_Units", "Quantitation_Limit",
-#                    "Quantitation_Limit_Units", "Reporting_Limit", "Reporting_Limit_Units", "Reportable_Result",
-#                    "Result_Type_Code", "QC_Type", "Percent_Solids", "Percent_Lipids", "Percent_Moisture",
-#                    "Total_or_Dissolved", "Test_Type", "Basis", "Dilution_Factor", "Percent_Recovery",
-#                    "SubSample_Amount", "SubSample_Amount_Unit", "Final_Volume", "Final_Volume_Unit", "Comments",
-#                    "QAFlag", "QA_Date", "QA_Comment", "QA_UserName"]
-# sample_types = ["Bio", "Chem"]
-
 dataList = []
 curData = []
 usedData = []
@@ -204,7 +179,7 @@ class BaseColors:
     UNDERLINE = ''
 
 
-class verticalText(Flowable):
+class VerticalText(Flowable):
 
     def __init__(self, text):
         Flowable.__init__(self)
@@ -223,7 +198,7 @@ class verticalText(Flowable):
         return canv._leading, 1 + canv.stringWidth(self.text, fn, fs)
 
 
-class verticalTexts(Flowable):
+class VerticalTexts(Flowable):
 
     def __init__(self, text):
         Flowable.__init__(self)
@@ -234,9 +209,9 @@ class verticalTexts(Flowable):
         canvas.rotate(90)
         fs = canvas._fontsize
         canvas.translate(1, -fs / 2)  # canvas._leading?
-        tempText = self.text.split('\n')
-        for item in range(len(tempText)):
-            canvas.drawString(0, item * -10, tempText[item])
+        temp_text = self.text.split('\n')
+        for item in range(len(temp_text)):
+            canvas.drawString(0, item * -10, temp_text[item])
 
     def wrap(self, aW, aH):
         canv = self.canv
@@ -245,8 +220,7 @@ class verticalTexts(Flowable):
 
 
 def build_pdf(lab_name, num, data):
-    global pdf_details, curDir, containers, preservative, bio_edd_header, chem_edd_header, sample_types, \
-        bad_file_name_list, empty_dict
+    global pdf_details, curDir, containers, preservative, bad_file_name_list, empty_dict
     details = pdf_details[0]
     # start the document
     name = lab_name + " " + num
@@ -279,11 +253,11 @@ def build_pdf(lab_name, num, data):
         [f"SHIP TO: {details[0]}", "", "", "", "", "", "", "", "", "", "", "", "", ""],
         [f"ATTN: {details[1]}", "", "", "", f"PHONE: {details[2]}", "", "", "", "", "", "", "", "", ""],
         ["CLIENT NAME:", "", "", "", "PROJECT:",
-         verticalTexts("Grab (G), Composite (C), or\nUltrafilter (UF)"),
-         verticalText("Sodium Thiosulfate Added (Y/N)"),
-         verticalTexts("Free chlorine (mg/L, enter total\nchlorine on reverse)"),
-         verticalText("pH"), verticalText("Temperature (°C)"), verticalText("Total Dissolved Solids (ppm)"),
-         verticalText("Conductivity (μS/cm)"), verticalText("Salinity (ppm)"), "CSID\n(LAB USE ONLY)"],
+         VerticalTexts("Grab (G), Composite (C), or\nUltrafilter (UF)"),
+         VerticalText("Sodium Thiosulfate Added (Y/N)"),
+         VerticalTexts("Free chlorine (mg/L, enter total\nchlorine on reverse)"),
+         VerticalText("pH"), VerticalText("Temperature (°C)"), VerticalText("Total Dissolved Solids (ppm)"),
+         VerticalText("Conductivity (μS/cm)"), VerticalText("Salinity (ppm)"), "CSID\n(LAB USE ONLY)"],
         ["ADDRESS:", "", "", "", "PHONE:\nFAX:\nEMAIL:", "", "", "", "", "", "", "", "", ""],
         ["PROJECT MANAGER:", "", "", "", "SAMPLER:", "", "", "", "", "", "", "", "", ""],
         ["DATE", "TIME", "VOLUME", "SMPL\nTYPE", "SAMPLE IDENTIFICATION", "", "", "", "", "", "", "", "", ""]]
@@ -432,54 +406,54 @@ def build_pdf(lab_name, num, data):
                               ('SPAN', (0, 17), (-1, 17)),
                               ])
     # edd_data = []
-    # if samp_type == sample_types[0]:
-    #     edd_data = [bio_edd_header]
-    # elif samp_type == sample_types[1]:
-    #     edd_data = [chem_edd_header]
     for i in range(len(data)):
         sample_part = data[i]
         if sample_part[3] == '':
             continue
-        # print(sample_part)
-        sample_tuple = (sample_part[0].lower(), sample_part[1].lower())
-        colec = Paragraph("%s" % sample_part[0], tableStyle)
-        sample_id = Paragraph("%s" % sample_part[3], tableStyle)
+        # sample_tuple = (sample_part[0].lower(), sample_part[1].lower())
+        collect = Paragraph("%s" % sample_part[0], tableStyle)
         s_type = Paragraph("%s" % sample_part[1], tableStyle)
-        latitude = Paragraph("%s" % sample_part[-1], tableStyle)
+        sample_id = Paragraph("%s" % sample_part[3], tableStyle)
+        sodium = Paragraph("%s" % sample_part[4], tableStyle)
+        chlorine = Paragraph("%s" % sample_part[5], tableStyle)
+        ph = Paragraph("%s" % sample_part[6], tableStyle)
+        temperature = Paragraph("%s" % sample_part[7], tableStyle)
+        solids = Paragraph("%s" % sample_part[8], tableStyle)
+        conduct = Paragraph("%s" % sample_part[9], tableStyle)
+        salinity = Paragraph("%s" % sample_part[10], tableStyle)
+        volume = Paragraph("%s" % sample_part[11], tableStyle)
+        other = Paragraph("%s" % sample_part[12], tableStyle)
+        start_read = Paragraph("%s" % sample_part[13], tableStyle)
+        end_read = Paragraph("%s" % sample_part[14], tableStyle)
+        flow_rate = Paragraph("%s" % sample_part[15], tableStyle)
         longitude = Paragraph("%s" % sample_part[-2], tableStyle)
-        # print(sample_part)
+        latitude = Paragraph("%s" % sample_part[-1], tableStyle)
 
         # Move this block to when the date is pulled from the csv [
 
         time_value = sample_part[2]
-
-        # ] Move this block to when the date is pulled from the csv
-
         coll_date = time_value.date()
         coll_time = time_value.time()
-        # hour, minute, second = coll_time.split(':')
-        # if coll_per == 'PM' and hour != '12':
-        #     hour_int = int(hour)
-        #     hour_int = hour_int + 12
-        #     hour = str(hour_int)
-        # elif coll_per == 'AM' and hour == '12':
-        #     hour = "00"
-        # coll_time = ':'.join([hour, minute, second])
-        # print(coll_time)
         d_time = Paragraph("%s" % coll_date, tableStyle)
         c_time = Paragraph("%s" % coll_time, tableStyle)
-        # count = Paragraph("1", leftTable)
-        # if sample_tuple in containers.keys():
-        #     contain = containers[sample_tuple]
-        #     preserve = preservative[sample_tuple]
-        # else:
-        #     contain = ""
-        #     preserve = ""
+
+        if sample_part[16] != '':
+            start_time_value = sample_part[16].time()
+            s_time = Paragraph("%s" % start_time_value, tableStyle)
+        else:
+            s_time = Paragraph("", tableStyle)
+
+        if sample_part[17] != '':
+            end_time_value = sample_part[17].time()
+            e_time = Paragraph("%s" % end_time_value, tableStyle)
+        else:
+            e_time = Paragraph("", tableStyle)
+
         data1.append(
-            [d_time, c_time, "volume", s_type, sample_id, colec, "Y/N", "mg/L", "pH", "temp", "ppm", "μS/cm", "ppm",
-             ""])
+            [d_time, c_time, volume, s_type, sample_id, collect, sodium, chlorine, ph, temperature, solids, conduct,
+             salinity, ""])
         data2.append(
-            [sample_id, latitude, longitude, "other", "startT", "endT", "startR", "endR", "flow rate", "flow rate 2"])
+            [sample_id, latitude, longitude, other, s_time, e_time, start_read, end_read, flow_rate, ""])
 
         # if samp_type == sample_types[0]:
         #     edd_data.append(["", sample_part[1], "%s (%s)" % (sample_part[4], sample_part[0])])
@@ -560,7 +534,6 @@ def form_number():
     return form_num
 
 
-
 def store(main_screen):
     global data_collected
     screen_label = main_screen.ids.screen_label
@@ -597,7 +570,6 @@ def convert(data_to_convert, character_list, conversion_dict, is_for_file_name=F
             # or to remove trouble characters, or simply to convert special chars to code chars
     if old_data != data_to_convert and is_for_file_name and is_for_trouble is not True:
         # if the data was converted, and it was for a bad file name and not only for a trouble character,
-        # print this to user
         print("Error saving file with name %s, saved as %s instead." % (old_data, data_to_convert))
     return data_to_convert
 
@@ -654,13 +626,10 @@ class MainScreenWidget(BoxLayout):
     sys_id = os.environ["COMPUTERNAME"]
     btn = None
 
-    def __init__(self, **kwargs):  # start the program and bind the 'X' button the exit function
+    def __init__(self, **kwargs):  # start the program and bind the 'X' button the exit_call function
         super(MainScreenWidget, self).__init__(**kwargs)
-        # print(hasattr(super(), "__getattr__"))
-        Window.bind(on_request_close=self.exit)
-        # print("bind")
+        Window.bind(on_request_close=self.exit_call)
         self.btn = self.ids.startpdf
-        # print("init")
 
     def clear(self):
         screen_label = self.ids.screen_label
@@ -675,7 +644,8 @@ class MainScreenWidget(BoxLayout):
         #     return False
         return True
 
-    def exit(self, *args):
+    @staticmethod
+    def exit_call(*args):
         exit_widget = ExitWidget()
         exit_widget.exit_widget_popup = Popup(
             title="                             Are you sure you want to quit?\n(unsaved data, "
@@ -729,8 +699,6 @@ class MainScreenWidget(BoxLayout):
         return True
 
     def add_row(self, name, excess):
-        # print(name)
-        # print(excess)
         self.num_rows += 1
         new_row = RowWidget()
         new_row.main_screen = self
@@ -738,7 +706,6 @@ class MainScreenWidget(BoxLayout):
         new_row.ids.rownumber.text = str(self.num_rows)
         new_row.ids.samplefield.text = name
         btn = new_row.ids.buttonsection.children[0]
-        # print(btn)
         btn.bind(on_release=self.remove_row)
 
         rows_section = self.ids.middlesection
@@ -766,27 +733,21 @@ class MainScreenWidget(BoxLayout):
 
         num = str(form_number())
         build_pdf(lab_name, num, curData)
-        # print("Built")
         count = lab_counts[lab_name] + len(curData)
         lab_counts[lab_name] = count
-        # print("start Append")
         for sample in curData:
             usedData.append(sample)
-        # print("Append")
         curData.clear()
         self.store_used()
         rows_section = self.ids.middlesection
         rows_section.clear_widgets()
         rows_section.height = 0
         pdf_details.clear()
-        # print("start Count")
         for key in pop_counts.keys():
             pop_counts[key] = 0
-        # print("Count")
         self.btn.pos = (-300, 10)
         self.num_rows = 0
         self.ids.screen_label.text = "Samples used: %d/%d\n" % (len(usedData), len(dataList))
-        # print("finish")
         # Add body text for labs that have samples: check if lab has samples, display count for that lab
 
     def add_button(self):
@@ -863,7 +824,6 @@ class MainScreenWidget(BoxLayout):
                 else:
                     screen_label.text = f"{BaseColors.WARNING}%s not in provided csv file" \
                                         f"{BaseColors.ENDC}" % barcode_data
-                    # print(barcode_data)
 
             # show the output frame
             cv2.imshow("QR Toolbox", frame)
@@ -918,7 +878,8 @@ class MainScreenWidget(BoxLayout):
         setting.main_screen = self
         setting.setup_popup.open()
 
-    def start_error(self, text):
+    @staticmethod
+    def start_error(text):
         error_widget = ErrorMessageWidget()
         error_widget.ids.message.text = f"{BaseColors.WARNING}%s{BaseColors.ENDC}" % text
         error_widget.error_widget_popup = Popup(
@@ -939,14 +900,16 @@ class MainScreenWidget(BoxLayout):
         mem_location.main_screen = self
         mem_location.memory_popup.open()
 
-    def store_used(self):
+    @staticmethod
+    def store_used():
         global curMemory, usedData, lab_counts
         temp_list = usedData.copy()
         temp_list.append(list(lab_counts.items()))
         with open(curMemory, "wb+") as mem_file:
             pickle.dump(temp_list, mem_file)
 
-    def grab_used(self):
+    @staticmethod
+    def grab_used():
         global curMemory, usedData, found, lab_counts
         with open(curMemory, "rb") as mem_file:
             temp_list = pickle.load(mem_file)
@@ -965,6 +928,8 @@ class MainScreenWidget(BoxLayout):
         online_layer.main_screen = self
         online_layer.popup_widget = popup
         online_layer.source_class = source
+        online_layer.ids.owner.text = gis_owner
+        online_layer.ids.layer.text = gis_title
         online_layer.online_popup.open()
 
 
@@ -981,7 +946,7 @@ class ScanWidget(BoxLayout):
     scan_widget_popup = None
 
     def start_scan(self):
-        global pdf_details
+        global pdf_details, labInfo
         error_text = "One or more required fields were not filled out\nPlease go back and fix this"
         labels = lab_drop_btn.text
         for lab in labInfo:
@@ -1010,7 +975,7 @@ class PopulateWidget(BoxLayout):
     populate_widget_popup = None
 
     def start_pop(self):
-        global pdf_details
+        global pdf_details, method_drop_btn, labInfo
         error_text = "One or more required fields were not filled out\nPlease go back and fix this"
         labels = lab_drop_btn.text
         num_samples = self.ids.popcount.text
@@ -1048,7 +1013,6 @@ class PopulateWidget(BoxLayout):
         screen_label = self.main_window.ids.screen_label
         count = int(num_sample)
         warning_text = f"{BaseColors.WARNING}Warning: {BaseColors.ENDC}"
-        # print(len(warning_text))
         type_samples = type_samples.lower()
         i = 0
         track = pop_counts[type_samples]
@@ -1067,7 +1031,6 @@ class PopulateWidget(BoxLayout):
 
         for match in dataList[track:]:
             if match[0].lower() == type_samples or type_samples == "any":
-                # print(match[4] + ": " + str(dataList.count(match[4])))
                 if match[3] == "":
                     continue
                 elif [match[2], match[3]] in found:  # add duplication error/check
@@ -1095,7 +1058,6 @@ class PopulateWidget(BoxLayout):
         if len(warning_text) > 33:
             screen_label.text = warning_text
 
-        # print(header)
         for sample in temp_data:
             self.main_window.add_row(sample[3], 0)
             curData.append(sample)
@@ -1135,9 +1097,7 @@ class StorageWidget(BoxLayout):
         return screen_label
 
     def get_csv_file(self):
-        global dataList, data_collected, sample_id_col, date_time_col, sample_id_head, \
-            sample_type_head, date_time_head, sample_type_col, sample_method_col, sample_method_head, headers, \
-            csvTitle, bag_counts
+        global dataList, data_collected, col_indexes, csv_headers, headers, csvTitle, bag_counts
         screen_label = self.store_data()
         filename = store(self.main_screen)
         if data_collected:  # from a csv, restructure this
@@ -1146,30 +1106,55 @@ class StorageWidget(BoxLayout):
                 all_samples = list(reader)
             headers = all_samples[0]
             for col in headers:
-                if col.lower() == sample_id_head:
-                    sample_id_col = headers.index(col)
-                elif col.lower() == date_time_head:
-                    date_time_col = headers.index(col)
-                elif col.lower() == sample_type_head:
-                    sample_type_col = headers.index(col)
-                elif col.lower() == sample_method_head:
-                    sample_method_col = headers.index(col)
+                for index in range(len(csv_headers)):
+                    if col.lower() == csv_headers[index]:
+                        col_indexes[index] = headers.index(col)
+                        break
             all_samples = all_samples[1:]
             for sample in all_samples:
-                if sample[sample_id_col] == '':
+                if sample[col_indexes[3]] == '':
                     continue
-                if sample[sample_id_col] not in bag_counts.keys():
-                    bag_counts[sample[sample_id_col]] = 0
-                if ',' in sample[date_time_col]:
-                    temp_time = sample[date_time_col].replace(',', '')
+                if sample[col_indexes[3]] not in bag_counts.keys():
+                    bag_counts[sample[col_indexes[3]]] = 0
+                if ',' in sample[col_indexes[2]]:
+                    temp_time = sample[col_indexes[2]].replace(',', '')
                     time_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
                 else:
-                    temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
+                    temp_time = datetime.strptime(sample[col_indexes[2]], "%m/%d/%Y %I:%M:%S %p")
                     timezone = get_localzone()
                     time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
-                dataList.append([sample[sample_method_col], sample[sample_type_col],
-                                 time_value, sample[sample_id_col], sample[-2], sample[-1]])
-                bag_counts[sample[sample_id_col]] += 1
+                if ',' in sample[col_indexes[16]]:
+                    temp_time = sample[col_indexes[16]].replace(',', '')
+                    start_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
+                elif sample[col_indexes[16]] != '':
+                    temp_time = datetime.strptime(sample[col_indexes[16]], "%m/%d/%Y %I:%M:%S %p")
+                    timezone = get_localzone()
+                    start_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
+                else:
+                    start_value = ''
+                if ',' in sample[col_indexes[17]]:
+                    temp_time = sample[col_indexes[17]].replace(',', '')
+                    end_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
+                elif sample[col_indexes[17]] != '':
+                    temp_time = datetime.strptime(sample[col_indexes[17]], "%m/%d/%Y %I:%M:%S %p")
+                    timezone = get_localzone()
+                    end_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
+                else:
+                    end_value = ''
+                new_sample = []
+                for index in range(len(col_indexes)):
+                    if index == 2:
+                        new_sample.append(time_value)
+                    elif index == 16:
+                        new_sample.append(start_value)
+                    elif index == 17:
+                        new_sample.append(end_value)
+                    else:
+                        new_sample.append(sample[col_indexes[index]])
+                new_sample.append(sample[-2])
+                new_sample.append(sample[-1])
+                dataList.append(new_sample)
+                bag_counts[sample[col_indexes[3]]] += 1
             temp = filename.split('/')
             csvTitle = temp[-1].split('.')[0]
             screen_label.text = f"{BaseColors.OKGREEN}CSV Selected: {temp[-1]}{BaseColors.ENDC}\n" \
@@ -1179,9 +1164,6 @@ class StorageWidget(BoxLayout):
 
     def get_online_layer(self):
         screen_label = self.store_data()  # do something to set the label
-        # print(StorageWidget)
-        # print(type(StorageWidget))
-        # print(type(self))
         self.main_screen.find_online(self, self.storage_popup)
 
 
@@ -1193,8 +1175,7 @@ class OnlineWidget(BoxLayout):
 
     def access_layer(self):
         global accessed_server, gis_owner, gis_title, epa_client_id, epa_url, oneepa_url, oneepa_client_id, \
-            sample_id_gis, sample_method_gis, sample_type_gis, date_time_gis, data_collected, dataList, \
-            bag_counts, usedData, lab_counts, csvTitle
+            data_collected, dataList, bag_counts, usedData, lab_counts, csvTitle, gis_headers
         # set in checks for text fields being empty
         if self.ids.epa_server.state == 'down':
             accessed_server = 0
@@ -1230,28 +1211,55 @@ class OnlineWidget(BoxLayout):
             self.popup_widget.dismiss()
         first = gis_query[0]
         gis_name = first.title
-        # print(gis_name)
         layers = first.layers
         initial = layers[0]
         features = initial.query(
-            out_fields=[sample_method_gis, sample_type_gis, date_time_gis, sample_id_gis],
+            out_fields=gis_headers,
             out_sr=4326
         ).to_dict()['features']
         for i in range(len(features)):
             temp = features[i]['attributes']
             geometry = features[i]['geometry']
-            if temp[sample_id_gis] == None:
+            if temp[gis_headers[3]] is None:
                 continue
-            if temp[sample_id_gis] not in bag_counts.keys():
-                bag_counts[temp[sample_id_gis]] = 0
-            s = temp[date_time_gis] / 1000.0
-            fixed_time = datetime.fromtimestamp(s)
-            # print(fixed_time)
+            if temp[gis_headers[3]] not in bag_counts.keys():
+                bag_counts[temp[gis_headers[3]]] = 0
+            collect = temp[gis_headers[2]] / 1000.0
+            fixed_time = datetime.fromtimestamp(collect)
             temp_time = datetime.strptime(datetime.strftime(fixed_time, "%m/%d/%Y %I:%M:%S %p"), "%m/%d/%Y %I:%M:%S %p")
-            # print(temp_time)
-            dataList.append([temp[sample_method_gis], temp[sample_type_gis], temp_time, temp[sample_id_gis],
-                             geometry['x'], geometry['y']])
-            bag_counts[temp[sample_id_gis]] += 1
+
+            if temp[gis_headers[16]] is not None:
+                start = temp[gis_headers[16]] / 1000.0
+                fixed_start = datetime.fromtimestamp(start)
+                temp_start = datetime.strptime(datetime.strftime(fixed_start, "%m/%d/%Y %I:%M:%S %p"),
+                                               "%m/%d/%Y %I:%M:%S %p")
+            else:
+                temp_start = ''
+
+            if temp[gis_headers[17]] is not None:
+                end = temp[gis_headers[17]] / 1000.0
+                fixed_end = datetime.fromtimestamp(end)
+                temp_end = datetime.strptime(datetime.strftime(fixed_end, "%m/%d/%Y %I:%M:%S %p"),
+                                             "%m/%d/%Y %I:%M:%S %p")
+            else:
+                temp_end = ''
+            new_sample = []
+            for index in range(len(gis_headers)):
+                if index == 2:
+                    new_sample.append(temp_time)
+                elif index == 16:
+                    new_sample.append(temp_start)
+                elif index == 17:
+                    new_sample.append(temp_end)
+                else:
+                    if temp[gis_headers[index]] is None:
+                        new_sample.append('')
+                    else:
+                        new_sample.append(temp[gis_headers[index]])
+            new_sample.append(geometry['x'])
+            new_sample.append(geometry['y'])
+            dataList.append(new_sample)
+            bag_counts[temp[gis_headers[3]]] += 1
         if source == StorageWidget:
             usedData = []
             csvTitle = gis_name
@@ -1270,54 +1278,75 @@ class AppendWidget(BoxLayout):
     main_screen = None
 
     def add_csv(self):
-        global dataList, data_collected, sample_id_col, date_time_col, bag_counts, \
-            sample_id_head, sample_type_head, date_time_head, sample_type_col, sample_method_col, \
-            sample_method_head, headers
+        global dataList, data_collected, bag_counts, col_indexes, csv_headers, headers
 
         filename = store(self.main_screen)
         screen_label = self.main_screen.ids.screen_label
-        all_samples = []
+        # all_samples = []
         if data_collected:
             with open(filename, "r", encoding='utf-8-sig') as csvfile:
                 reader = csv.reader(csvfile)
                 all_samples = list(reader)
             headers = all_samples[0]
             for col in headers:
-                if col.lower() == sample_id_head:
-                    sample_id_col = headers.index(col)
-                elif col.lower() == date_time_head:
-                    date_time_col = headers.index(col)
-                elif col.lower() == sample_type_head:
-                    sample_type_col = headers.index(col)
-                elif col.lower() == sample_method_head:
-                    sample_method_col = headers.index(col)
+                for index in range(len(csv_headers)):
+                    if col.lower() == csv_headers[index]:
+                        col_indexes[index] = headers.index(col)
+                        break
             all_samples = all_samples[1:]
             for sample in all_samples:
-                if sample[sample_id_col] == '':
+                if sample[col_indexes[3]] == '':
                     continue
                 else:
-                    finder = filter(lambda a: sample[date_time_col] in a, dataList)
+                    finder = filter(lambda a: sample[col_indexes[2]] in a, dataList)
                     existing = list(finder)
                     copies = []
-                    # print(existing)
                     for finding in existing:
-                        if finding[date_time_col] == sample[date_time_col]:
+                        if finding[col_indexes[2]] == sample[col_indexes[2]]:
                             copies.append(finding)
                             break
                     if len(copies) == 0:
-                        if sample[sample_id_col] not in bag_counts.keys():
-                            bag_counts[sample[sample_id_col]] = 0
-                        if ',' in sample[date_time_col]:
-                            temp_time = sample[date_time_col].replace(',', '')
+                        if sample[col_indexes[3]] not in bag_counts.keys():
+                            bag_counts[sample[col_indexes[2]]] = 0
+                        if ',' in sample[col_indexes[2]]:
+                            temp_time = sample[col_indexes[2]].replace(',', '')
                             time_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
                         else:
-                            temp_time = datetime.strptime(sample[date_time_col], "%m/%d/%Y %I:%M:%S %p")
+                            temp_time = datetime.strptime(sample[col_indexes[2]], "%m/%d/%Y %I:%M:%S %p")
                             timezone = get_localzone()
                             time_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
-                        dataList.append([sample[sample_method_col], sample[sample_type_col],
-                                         time_value, sample[sample_id_col], sample[-2], sample[-1]])
-                        bag_counts[sample[sample_id_col]] += 1
-            # print(dataList)
+                        if ',' in sample[col_indexes[16]]:
+                            temp_time = sample[col_indexes[16]].replace(',', '')
+                            start_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
+                        elif sample[col_indexes[16]] != '':
+                            temp_time = datetime.strptime(sample[col_indexes[16]], "%m/%d/%Y %I:%M:%S %p")
+                            timezone = get_localzone()
+                            start_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
+                        else:
+                            start_value = ''
+                        if ',' in sample[col_indexes[17]]:
+                            temp_time = sample[col_indexes[17]].replace(',', '')
+                            end_value = datetime.strptime(temp_time, "%m/%d/%Y %I:%M:%S %p")
+                        elif sample[col_indexes[17]] != '':
+                            temp_time = datetime.strptime(sample[col_indexes[17]], "%m/%d/%Y %I:%M:%S %p")
+                            timezone = get_localzone()
+                            end_value = temp_time.replace(tzinfo=pytz.utc).astimezone(timezone)
+                        else:
+                            end_value = ''
+                        new_sample = []
+                        for index in range(len(col_indexes)):
+                            if index == 2:
+                                new_sample.append(time_value)
+                            elif index == 16:
+                                new_sample.append(start_value)
+                            elif index == 17:
+                                new_sample.append(end_value)
+                            else:
+                                new_sample.append(sample[col_indexes[index]])
+                        new_sample.append(sample[-2])
+                        new_sample.append(sample[-1])
+                        dataList.append(new_sample)
+                        bag_counts[sample[col_indexes[3]]] += 1
             temp = filename.split('/')
 
             screen_label.text = f"{BaseColors.OKGREEN}CSV added: {temp[-1]}{BaseColors.ENDC}\n" \
@@ -1332,7 +1361,8 @@ class SettingWidget(BoxLayout):
     main_screen = None
     setup_popup = None
 
-    def show_count(self):
+    @staticmethod
+    def show_count():
         global lab_counts
         lab_widget = LabCountWidget()
         temp_text = ""
@@ -1391,39 +1421,34 @@ class AlterHeaderWidget(BoxLayout):
     header_popup = None
 
     def setup(self):
-        global sample_id_head, sample_type_head, date_time_head, sample_method_head
-        self.ids.bag_id.text = sample_id_head
-        self.ids.type.text = sample_type_head
-        self.ids.date.text = date_time_head
-        self.ids.method.text = sample_method_head
+        global csv_headers
+        self.ids.method.text = csv_headers[0]
+        self.ids.type.text = csv_headers[1]
+        self.ids.date.text = csv_headers[2]
+        self.ids.bag_id.text = csv_headers[3]
 
     def finish(self):
-        global sample_id_head, sample_type_head, date_time_head, sample_method_head, \
-            sample_method_col, sample_type_col, sample_id_col, date_time_col, \
-            dataList, data_collected, headers
+        global csv_headers, col_indexes, dataList, data_collected, headers
 
-        sample_id_head = self.ids.bag_id.text
-        sample_type_head = self.ids.type.text
-        date_time_head = self.ids.date.text
-        sample_method_head = self.ids.method.text
+        csv_headers[0] = self.ids.method.text
+        csv_headers[1] = self.ids.type.text
+        csv_headers[2] = self.ids.date.text
+        csv_headers[3] = self.ids.bag_id.text
 
         if data_collected:
             for col in headers:
-                if col.lower() == sample_id_head:
-                    sample_id_col = headers.index(col)
-                elif col.lower() == date_time_head:
-                    date_time_col = headers.index(col)
-                elif col.lower() == sample_type_head:
-                    sample_type_col = headers.index(col)
-                elif col.lower() == sample_method_head:
-                    sample_method_col = headers.index(col)
+                for index in range(len(csv_headers)):
+                    if col.lower() == csv_headers[index]:
+                        col_indexes[index] = headers.index(col)
+                        break
 
 
 class MemoryWidget(BoxLayout):
     memory_popup = None
     main_screen = None
 
-    def no_memory(self):
+    @staticmethod
+    def no_memory():
         global curDir, curMemory, csvTitle, bad_file_name_list, empty_dict
         new_name = convert(csvTitle, bad_file_name_list, empty_dict, True)
         curMemory = "%s/%s_Memory.txt" % (curDir, new_name)
@@ -1469,12 +1494,11 @@ class COCPDFToolApp(App):
 
     def build(self):
         self.main_screen = MainScreenWidget()
-        # print("main")
         Window.size = (900, 650)
-        # print("built")
         return self.main_screen
 
-    def get_labs(self):
+    @staticmethod
+    def get_labs():
         global labInfo, drop_menu_1, lab_drop_btn, lab_counts
         lab_file = curDir + "\\labs.csv"
         with open(lab_file, "r", encoding='utf-8') as csvfile:
@@ -1491,29 +1515,16 @@ class COCPDFToolApp(App):
         lab_drop_btn.bind(on_release=drop_menu_1.open)
         drop_menu_1.bind(on_select=lambda instance, x: setattr(lab_drop_btn, 'text', x))
 
-    def get_containers(self):
+    @staticmethod
+    def set_populate_options():
         global containers, preservative, pop_counts, method_drop_btn, drop_menu_2
-        con_file = curDir + "\\containers.csv"
-        temp_methods = []
-        with open(con_file, "r", encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            temp_list = list(reader)
-        # print(temp_list)
-        for con in range(len(temp_list)):
-            if con == 0:
-                continue
-            contain = temp_list[con]
-            if contain[0] not in temp_methods:
-                temp_methods.append(contain[0])
-                btn = Button(text='%s' % contain[0], size_hint_y=None, height=30)
-                btn.bind(on_release=lambda button: drop_menu_2.select(button.text))
-                drop_menu_2.add_widget(btn)
-            contain[0] = contain[0].lower()
-            contain[1] = contain[1].lower()
-            containers[tuple(contain[:2])] = contain[2]
-            preservative[tuple(contain[:2])] = contain[3]
-            if contain[0] not in pop_counts.keys():
-                pop_counts[contain[0]] = 0
+        collection_methods = ['G', 'C', 'UF']
+        # sample_types = ["W", "SW", "GW", "DW", "WW", "PW", "SE", "SL", "OT"]
+        for method in collection_methods:
+            btn = Button(text='%s' % method, size_hint_y=None, height=30)
+            btn.bind(on_release=lambda button: drop_menu_2.select(button.text))
+            drop_menu_2.add_widget(btn)
+            pop_counts[method.lower()] = 0
         pop_counts["any"] = 0
         btn = Button(text='Any', size_hint_y=None, height=30)
         btn.bind(on_release=lambda button: drop_menu_2.select(button.text))
@@ -1521,10 +1532,9 @@ class COCPDFToolApp(App):
         method_drop_btn.bind(on_release=drop_menu_2.open)
         drop_menu_2.bind(on_select=lambda instance, x: setattr(method_drop_btn, 'text', x))
 
-
     def on_start(self):
         self.get_labs()
-        self.get_containers()
+        self.set_populate_options()
         self.main_screen.select_storage()
 
 
