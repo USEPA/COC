@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Update GitIgnore">
+    <list default="true" id="de9fc731-93d3-4005-9bb9-218f79bdeaec" name="Changes" comment="Finalize Main CDC Changes">
       <change afterPath="$PROJECT_DIR$/dist/Setup/vcredist_x64.exe" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/dist/Setup/vcredist_x86.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/COC_PDF_tool.py" beforeDir="false" afterPath="$PROJECT_DIR$/COC_PDF_tool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cocpdftool.kv" beforeDir="false" afterPath="$PROJECT_DIR$/cocpdftool.kv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/labs.csv" beforeDir="false" afterPath="$PROJECT_DIR$/labs.csv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -298,7 +298,14 @@
       <option name="project" value="LOCAL" />
       <updated>1724272651852</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Finalize Main CDC Changes">
+      <created>1724357689130</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1724357689130</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -332,7 +339,8 @@
     <MESSAGE value="Updated Visual for CDC Form" />
     <MESSAGE value="Add GitIgnore" />
     <MESSAGE value="Update GitIgnore" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update GitIgnore" />
+    <MESSAGE value="Finalize Main CDC Changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finalize Main CDC Changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

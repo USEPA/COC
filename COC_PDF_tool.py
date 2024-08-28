@@ -149,21 +149,26 @@ pop_counts = {}
 bag_counts = {}
 
 styles = getSampleStyleSheet()
-style = styles['Normal']
+style = styles['BodyText']
 # create custom styles for the table to use for the Paragraphs
 tableStyle = ParagraphStyle('Table Body',
                             fontName="Helvetica",
                             fontSize=7,
-                            parent=styles['Normal'],
+                            parent=style,
                             alignment=0,  # Left side
                             spaceAfter=10)
 leftTable = ParagraphStyle('Left Table Body',
                            fontName="Helvetica",
-                           fontSize=8,
-                           parent=styles['Normal'],
+                           fontSize=7,
+                           parent=style,
                            alignment=2,  # Right
                            spaceAfter=10)
-
+headerStyle = ParagraphStyle('Header Body',
+                             fontName="Helvetica",
+                             fontSize=7,
+                             parent=styles['Heading2'],
+                             alignment=0,  # Left side
+                             spaceAfter=10)
 
 # start the document
 
@@ -219,11 +224,12 @@ class VerticalTexts(Flowable):
         return canv._leading, 1 + canv.stringWidth(self.text, fn, fs)
 
 
-def build_pdf(lab_name, num, data):
-    global pdf_details, curDir, containers, preservative, bad_file_name_list, empty_dict
-    details = pdf_details[0]
+def build_pdf(num, data):
+    global pdf_details, curDir, containers, preservative, bad_file_name_list, empty_dict, contact_name, contact_num
+    lab_short = pdf_details[0][0]
+    lab_name = pdf_details[0][1]
     # start the document
-    name = lab_name + " " + num
+    name = lab_short + " " + num
     new_name = convert(name, bad_file_name_list, empty_dict, True)
     doc = BaseDocTemplate("%s/Generated Forms/%s_CoC.pdf" % (curDir, new_name),
                           pagesize=(11 * inch, 8.5 * inch),
@@ -250,8 +256,8 @@ def build_pdf(lab_name, num, data):
         ["CENTERS FOR DISEASE CONTROL AND PREVENTION", "", "", "", "", "CHAIN OF CUSTODY RECORD", "", "", "", "", "",
          "", "", ""],
         ["WATERBORNE DISEASE PREVENTION BRANCH", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-        [f"SHIP TO: {details[0]}", "", "", "", "", "", "", "", "", "", "", "", "", ""],
-        [f"ATTN: {details[1]}", "", "", "", f"PHONE: {details[2]}", "", "", "", "", "", "", "", "", ""],
+        [f"SHIP TO: {lab_name}", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+        [f"ATTN: {contact_name}", "", "", "", f"PHONE: {contact_num}", "", "", "", "", "", "", "", "", ""],
         ["CLIENT NAME:", "", "", "", "PROJECT:",
          VerticalTexts("Grab (G), Composite (C), or\nUltrafilter (UF)"),
          VerticalText("Sodium Thiosulfate Added (Y/N)"),
@@ -264,8 +270,8 @@ def build_pdf(lab_name, num, data):
 
     header2 = [
         ["CENTERS FOR DISEASE CONTROL AND PREVENTION", "", "", "", "CHAIN OF CUSTODY RECORD", "", "", "", "", ""],
-        [f"WATERBORNE DISEASE PREVENTION BRANCH\n{details[0]}", "", "", "", "", "", "", "", "", ""],
-        [f"ATTN: {details[1]}", "", f"PHONE: {details[2]}", "", "ULTRAFILTRATION VOLUME MEASUREMENT", "", "", "", "",
+        [f"WATERBORNE DISEASE PREVENTION BRANCH\n{lab_name}", "", "", "", "", "", "", "", "", ""],
+        [f"ATTN: {contact_name}", "", f"PHONE: {contact_num}", "", "ULTRAFILTRATION VOLUME MEASUREMENT", "", "", "", "",
          ""],
         ["SAMPLE IDENTIFICATION", "LATITUDE", "LONGITUDE", "OTHER WATER\nMEASUREMENT(S)", "START\nTIME", "END TIME",
          "START METER\nREADING", "END METER\nREADING", "FLOW RATE\nMEASUREMENTS (L/MIN)", ""]]
@@ -310,19 +316,26 @@ def build_pdf(lab_name, num, data):
 
     tables = []
 
-    row_height1 = [inch / 4, inch / 4, inch * 0.15, inch * 0.15, inch * 0.4, inch * 0.72, inch * 0.3, inch * 0.3,
+    row_height1 = [inch * 0.25, inch * 0.25, inch * 0.15, inch * 0.15, inch * 0.4, inch * 0.75, inch * 0.3, inch * 0.3,
                    inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2,
-                   inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.17, inch * 0.15, inch * 0.15, inch * 0.15,
+                   inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.2, inch * 0.15, inch * 0.15, inch * 0.15,
                    inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15,
                    inch * 0.15, inch * 0.15, inch * 0.15]
     row_height2 = [inch * 0.3, inch * 0.3, inch * 0.2, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3,
                    inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3, inch * 0.3,
                    inch * 0.4, inch * 2]
-    row_width1 = [inch * 0.7, inch * 0.7, inch / 2, inch * 0.4, inch * 2.3, inch * 0.4, inch * 0.49, inch * 0.49,
+    row_width1 = [inch * 0.7, inch * 0.7, inch * 0.5, inch * 0.4, inch * 2.3, inch * 0.4, inch * 0.49, inch * 0.49,
                   inch * 0.49, inch * 0.49, inch * 0.49, inch * 0.49, inch * 0.49, inch * 1.2]
-    row_width2 = [inch * 1.7, inch * 1.4, inch * 1.4, inch * 1.2, inch * 0.49, inch * 0.49, inch * 0.8, inch * 0.8,
-                  inch * 0.7, inch * 0.6]
+    row_width2 = [inch * 1.7, inch * 1.4, inch * 1.4, inch * 1.2, inch * 0.5, inch * 0.5, inch * 0.8, inch * 0.8,
+                  inch * 0.68, inch * 0.65]
     page1_style = TableStyle([('FONT', (0, 0), (-1, -1), 'Helvetica', 7),
+                              ('FONT', (0, 0), (4, 0), 'Helvetica-Bold', 9),
+                              ('FONT', (0, 1), (4, 1), 'Helvetica-Bold', 8),
+                              ('FONT', (5, 0), (-1, 3), 'Helvetica-Bold', 10),
+                              ('TOPPADDING', (0, 2), (4, 6), 1),
+                              ('TOPPADDING', (10, 21), (12, 21), 1),
+                              ('LEFTPADDING', (0, 2), (4, 6), 1),
+                              ('LEFTPADDING', (0, 7), (4, 7), 4),
                               ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
                               ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
                               ('ALIGN', (5, 4), (-1, 4), 'CENTER'),
@@ -335,12 +348,16 @@ def build_pdf(lab_name, num, data):
                               ('VALIGN', (5, 0), (-1, 0), 'MIDDLE'),
                               ('VALIGN', (5, 4), (-1, 4), 'BOTTOM'),
                               ('VALIGN', (0, 7), (4, 7), 'BOTTOM'),
-                              ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                              ('INNERGRID', (0, 0), (4, 1), 0.25, colors.white),
-                              ('INNERGRID', (0, 2), (4, 3), 0.25, colors.white),
-                              ('INNERGRID', (0, 25), (9, -1), 0.25, colors.white),
-                              ('INNERGRID', (10, 22), (12, -1), 0.25, colors.white),
-                              ('INNERGRID', (13, 22), (13, -1), 0.25, colors.white),
+                              ('BOX', (0, 0), (4, 1), 0.25, colors.black),
+                              ('BOX', (0, 2), (4, 3), 0.25, colors.black),
+                              ('BOX', (5, 0), (-1, 3), 0.25, colors.black),
+                              ('BOX', (0, 25), (9, -1), 0.25, colors.black),
+                              ('BOX', (10, 20), (12, 21), 0.25, colors.black),
+                              ('BOX', (10, 22), (12, -1), 0.25, colors.black),
+                              ('BOX', (13, 20), (13, 21), 0.25, colors.black),
+                              ('BOX', (13, 22), (13, -1), 0.25, colors.black),
+                              ('GRID', (0, 4), (-1, 19), 0.25, colors.black),
+                              ('GRID', (0, 20), (9, 24), 0.25, colors.black),
                               ('SPAN', (0, 0), (4, 0)),
                               ('SPAN', (0, 1), (4, 1)),
                               ('SPAN', (0, 2), (4, 2)),
@@ -390,11 +407,33 @@ def build_pdf(lab_name, num, data):
                               ('SPAN', (0, 28), (9, -1)),
                               ])
     page2_style = TableStyle([('FONT', (0, 0), (-1, -1), 'Helvetica', 8),
+                              ('FONT', (0, 0), (3, 0), 'Helvetica-Bold', 9),
+                              ('FONT', (0, 1), (3, 1), 'Helvetica-Bold', 8),
+                              ('FONT', (4, 0), (-1, 1), 'Helvetica-Bold', 10),
+                              ('FONT', (4, 2), (-1, 2), 'Helvetica-Bold', 8),
+                              ('FONT', (0, 3), (-1, 3), 'Helvetica-Bold', 7),
+                              ('FONT', (0, 16), (-1, -1), 'Helvetica-Bold', 7),
+                              ('FONT', (0, 2), (3, 2), 'Helvetica', 7),
                               ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                              ('ALIGN', (0, 0), (-1, 1), 'CENTER'),
+                              ('ALIGN', (4, 2), (-1, 2), 'CENTER'),
+                              ('ALIGN', (8, 3), (-1, 3), 'CENTER'),
+                              ('ALIGN', (0, 16), (-1, 16), 'CENTER'),
                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                              ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                              ('INNERGRID', (0, 0), (3, 1), 0.25, colors.white),
-                              ('INNERGRID', (0, 2), (3, 2), 0.25, colors.white),
+                              ('VALIGN', (4, 0), (-1, 1), 'MIDDLE'),
+                              ('VALIGN', (0, 16), (-1, 16), 'MIDDLE'),
+                              ('VALIGN', (0, 3), (-1, 3), 'BOTTOM'),
+                              ('TOPPADDING', (0, 1), (3, 1), 1),
+                              ('TOPPADDING', (0, -1), (-1, -1), 1),
+                              ('BOTTOMPADDING', (0, 3), (-1, 3), 2),
+                              ('LEFTPADDING', (0, 2), (-1, 3), 1),
+                              ('LEFTPADDING', (4, 4), (5, 15), 3),
+                              ('LEFTPADDING', (0, -1), (-1, -1), 1),
+                              ('RIGHTPADDING', (4, 4), (5, 15), 3),
+                              ('GRID', (0, 3), (3, -1), 0.25, colors.black),
+                              ('GRID', (4, 0), (-1, -1), 0.25, colors.black),
+                              ('BOX', (0, 0), (3, 1), 0.25, colors.black),
+                              ('BOX', (0, 2), (3, 2), 0.25, colors.black),
                               ('SPAN', (0, 0), (3, 0)),
                               ('SPAN', (0, 1), (3, 1)),
                               ('SPAN', (0, 2), (1, 2)),
@@ -724,7 +763,7 @@ class MainScreenWidget(BoxLayout):
     def start_pdf(self):
         global pdf_details, usedData, dataList, curData, lab_counts, pop_counts
         error_text = "CoC PDF cannot be made with zero samples selected\nPlease select samples then try again"
-        lab_name = pdf_details[0][0]
+        lab_short = pdf_details[0][0]
         if len(curData) == 0:
             self.start_error(error_text)
             return False
@@ -732,9 +771,9 @@ class MainScreenWidget(BoxLayout):
         # Add popup for selecting sample type
 
         num = str(form_number())
-        build_pdf(lab_name, num, curData)
-        count = lab_counts[lab_name] + len(curData)
-        lab_counts[lab_name] = count
+        build_pdf(num, curData)
+        count = lab_counts[lab_short] + len(curData)
+        lab_counts[lab_short] = count
         for sample in curData:
             usedData.append(sample)
         curData.clear()
